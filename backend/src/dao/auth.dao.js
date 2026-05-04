@@ -1,23 +1,31 @@
 const supabase = require('../config/supabase');
 
-async function findByEmail(email) {
+/**
+ * Tìm tài khoản theo MaDangNhap, join NHAN_VIEN
+ */
+async function findByMaDangNhap(maDangNhap) {
   const { data, error } = await supabase
-    .from('users')
-    .select('*')
-    .eq('email', email)
+    .from('tai_khoan')
+    .select('madangnhap, matkhau, manv, nhan_vien(manv, hoten, sodienthoai, email, cccd, loainv)')
+    .eq('madangnhap', maDangNhap)
     .single();
+
   if (error) return null;
   return data;
 }
 
-async function findById(id) {
+/**
+ * Tìm nhân viên theo MaNV
+ */
+async function findById(manv) {
   const { data, error } = await supabase
-    .from('users')
-    .select('id, email, role, fullName')
-    .eq('id', id)
+    .from('nhan_vien')
+    .select('manv, hoten, sodienthoai, email, cccd, loainv')
+    .eq('manv', manv)
     .single();
+
   if (error) return null;
   return data;
 }
 
-module.exports = { findByEmail, findById };
+module.exports = { findByMaDangNhap, findById };

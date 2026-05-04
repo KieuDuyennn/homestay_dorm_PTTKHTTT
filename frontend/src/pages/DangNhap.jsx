@@ -1,29 +1,37 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import apiClient from '../services/apiClient';
 
 const DangNhap = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [maDangNhap, setMaDangNhap] = useState('');
+  const [matKhau, setMatKhau] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
-    // Giả lập đăng nhập
-    setTimeout(() => {
-      if (username === 'nv_ban_hang' && password === '123456') {
-        const userData = { username, role: 'Nhân viên bán hàng', name: 'Nguyễn Văn A' };
-        localStorage.setItem('user', JSON.stringify(userData));
-        navigate('/phieu-yeu-cau');
+    try {
+      const res = await apiClient.post('/auth/login', { maDangNhap, matKhau });
+      const { token, user } = res.data;
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+
+      // Chuyển hướng theo loại nhân viên
+      if (user.loainv === 'Kế toán') {
+        navigate('/danh-sach-hop-dong-yctt');
       } else {
-        setError('Tài khoản hoặc mật khẩu không chính xác.');
+        navigate('/phieu-yeu-cau');
       }
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Tài khoản hoặc mật khẩu không chính xác.';
+      setError(msg);
+    } finally {
       setLoading(false);
-    }, 800);
+    }
   };
 
   return (
@@ -40,7 +48,7 @@ const DangNhap = () => {
 
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
-              <label className="block text-xs font-bold text-slate uppercase tracking-wider mb-2">Tên đăng nhập</label>
+              <label className="block text-xs font-bold text-slate uppercase tracking-wider mb-2">Mã đăng nhập</label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -49,9 +57,9 @@ const DangNhap = () => {
                   type="text"
                   required
                   className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
-                  placeholder="nv_ban_hang"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="tuan.lm"
+                  value={maDangNhap}
+                  onChange={(e) => setMaDangNhap(e.target.value)}
                 />
               </div>
             </div>
@@ -67,8 +75,8 @@ const DangNhap = () => {
                   required
                   className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
                   placeholder="••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  value={matKhau}
+                  onChange={(e) => setMatKhau(e.target.value)}
                 />
               </div>
             </div>

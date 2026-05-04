@@ -8,6 +8,7 @@ const Sidebar = () => {
   const menuItems = [
     { id: 'phieu-yeu-cau', label: 'PYC Xem phòng', icon: '📋', path: '/phieu-yeu-cau' },
     { id: 'thanh-toan', label: 'Thanh toán cọc', icon: '$', path: '/thanh-toan' },
+    { id: 'yctt', label: 'Lập YCTT kỳ đầu', icon: '📝', path: '/danh-sach-hop-dong-yctt' },
   ];
 
   const handleLogout = () => {
