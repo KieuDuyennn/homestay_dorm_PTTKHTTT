@@ -161,7 +161,7 @@ CREATE TABLE PHIEU_YEU_CAU_XEM_PHONG (
     YeuCauKhac          TEXT,
     GioiTinh            VARCHAR(10)     CHECK (GioiTinh IN ('Nam', 'Nữ', 'Hỗn hợp')),
     NgayGuiYeuCau       TIMESTAMP       NOT NULL DEFAULT NOW(),
-    TrangThai           VARCHAR(30)     NOT NULL CHECK (TrangThai IN ('Cần xác nhận', 'Hủy thuê', 'Hoàn tất')),
+    TrangThai           VARCHAR(30)     NOT NULL CHECK (TrangThai IN ('Đang hẹn xem', 'Cần xác nhận', 'Hủy thuê', 'Hoàn tất')),
     LyDoHuy             TEXT,
     LoaiHinhThue        VARCHAR(30)     CHECK (LoaiHinhThue IN ('Ở ghép', 'Nguyên phòng')),
     MaNV                VARCHAR(10)     REFERENCES NHAN_VIEN(MaNV),

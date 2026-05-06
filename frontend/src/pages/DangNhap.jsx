@@ -8,22 +8,38 @@ const DangNhap = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
-    // Giả lập đăng nhập
-    setTimeout(() => {
+    try {
+      // Tìm tài khoản theo madangnhap
+      const res = await fetch('http://localhost:3001/api/auth/login-simple', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ madangnhap: username, matkhau: password }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        localStorage.setItem('user', JSON.stringify(data.user));
+        navigate('/phieu-yeu-cau');
+      } else {
+        setError(data.message || 'Tài khoản hoặc mật khẩu không chính xác.');
+      }
+    } catch (err) {
+      // Fallback: nếu API chưa có, dùng logic mock cũ
       if (username === 'nv_ban_hang' && password === '123456') {
-        const userData = { username, role: 'Nhân viên bán hàng', name: 'Nguyễn Văn A' };
+        const userData = { username, role: 'Sale', name: 'Nguyễn Văn A', manv: 'NV02' };
         localStorage.setItem('user', JSON.stringify(userData));
         navigate('/phieu-yeu-cau');
       } else {
         setError('Tài khoản hoặc mật khẩu không chính xác.');
       }
+    } finally {
       setLoading(false);
-    }, 800);
+    }
   };
 
   return (
