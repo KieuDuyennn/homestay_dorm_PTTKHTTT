@@ -31,13 +31,18 @@ const MHXemTruocIn = () => {
   };
 
   const handlePrint = useReactToPrint({
-    content: () => componentRef.current,
-    onAfterPrint: () => setShowPrintSuccess(true)
+    contentRef: componentRef,
+    onAfterPrint: () => setShowPrintSuccess(true),
+    onPrintError: (error) => console.error('Print Error:', error),
+    documentTitle: `BienBanTraPhong_${id}`,
   });
 
   const btnInBienBan_Click = () => {
-    // Trình in của browser sẽ hiện lên, sau khi đóng trình in sẽ hiện thông báo thành công
-    handlePrint();
+    if (componentRef.current) {
+      handlePrint();
+    } else {
+      alert('Đang chuẩn bị dữ liệu in, vui lòng thử lại sau giây lát.');
+    }
   };
 
   const btnHuy_Click = () => {
@@ -74,7 +79,7 @@ const MHXemTruocIn = () => {
                 </div>
                 <div className="text-right">
                   <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Mã biên bản</p>
-                  <p className="text-lg font-black text-navy">{report?.mabienbantp || report?.MaBienBanTP}</p>
+                  <p className="text-lg font-black text-navy">{report?.mabienbantp}</p>
                 </div>
               </div>
 
@@ -90,63 +95,118 @@ const MHXemTruocIn = () => {
                 {/* 1. Parties */}
                 <section>
                   <h3 className="text-sm font-bold uppercase border-b-2 border-slate-100 pb-2 mb-4 text-primary">I. Thông tin các bên</h3>
-                  <div className="grid grid-cols-2 gap-y-3 text-sm">
-                    <span className="font-bold">Đại diện ký túc xá:</span>
-                    <span>{report?.manv} - Nhân viên quản lý</span>
-                    
-                    <span className="font-bold">Khách hàng:</span>
-                    <span>{report?.hop_dong?.khach_hang?.hoten}</span>
-                    
-                    <span className="font-bold">Số CCCD:</span>
-                    <span>{report?.hop_dong?.khach_hang?.socccd}</span>
-                    
-                    <span className="font-bold">Hợp đồng số:</span>
-                    <span>{report?.mahd} (Ngày ký: {new Date(report?.hop_dong?.ngaybatdau).toLocaleDateString('vi-VN')})</span>
+                  <div className="grid grid-cols-2 gap-x-10 gap-y-3 text-sm">
+                    <div className="flex justify-between border-b border-slate-50 pb-1">
+                      <span className="font-bold">Nhân viên quản lý:</span>
+                      <span>{report?.manv}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-slate-50 pb-1">
+                      <span className="font-bold">Khách hàng:</span>
+                      <span>{report?.hop_dong?.khach_hang?.hoten}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-slate-50 pb-1">
+                      <span className="font-bold">Số CCCD:</span>
+                      <span>{report?.hop_dong?.khach_hang?.socccd}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-slate-50 pb-1">
+                      <span className="font-bold">Hợp đồng số:</span>
+                      <span>{report?.mahd}</span>
+                    </div>
                   </div>
                 </section>
 
                 {/* 2. Room Info */}
                 <section>
                   <h3 className="text-sm font-bold uppercase border-b-2 border-slate-100 pb-2 mb-4 text-primary">II. Thông tin phòng bàn giao</h3>
-                  <div className="grid grid-cols-2 gap-y-3 text-sm">
-                    <span className="font-bold">Phòng / Giường:</span>
-                    <span>{report?.hop_dong?.hop_dong_giuong?.[0]?.giuong?.maphong} / {report?.hop_dong?.hop_dong_giuong?.map(item => item.magiuong).join(', ')}</span>
-                    
-                    <span className="font-bold">Ngày kết thúc thuê:</span>
-                    <span>{new Date(report?.hop_dong?.ngayketthuc || report?.ngaylap).toLocaleDateString('vi-VN')}</span>
+                  <div className="grid grid-cols-2 gap-x-10 gap-y-3 text-sm">
+                    <div className="flex justify-between border-b border-slate-50 pb-1">
+                      <span className="font-bold">Phòng:</span>
+                      <span>{report?.hop_dong?.hop_dong_giuong?.[0]?.giuong?.maphong}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-slate-50 pb-1">
+                      <span className="font-bold">Giường:</span>
+                      <span>{report?.hop_dong?.hop_dong_giuong?.map(item => item.magiuong).join(', ')}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-slate-50 pb-1">
+                      <span className="font-bold">Loại hình:</span>
+                      <span>{report?.hop_dong?.hop_dong_giuong?.[0]?.giuong?.phong?.loaihinh}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-slate-50 pb-1">
+                      <span className="font-bold">Ngày kết thúc:</span>
+                      <span>{new Date(report?.hop_dong?.ngayketthuc || report?.ngaylap).toLocaleDateString('vi-VN')}</span>
+                    </div>
                   </div>
                 </section>
 
                 {/* 3. Assets and Status */}
                 <section>
                   <h3 className="text-sm font-bold uppercase border-b-2 border-slate-100 pb-2 mb-4 text-primary">III. Kết quả kiểm tra & Bàn giao</h3>
-                  <p className="text-sm mb-4">Các bên xác nhận đã tiến hành kiểm tra tình trạng phòng và trang thiết bị vật dụng. Kết quả như sau:</p>
-                  
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-sm mb-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-2 h-2 bg-emerald-500 rounded-full" />
-                      <span className="font-bold">Tình trạng vệ sinh:</span>
-                      <span>Đạt yêu cầu bàn giao sạch sẽ.</span>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-x-10 text-sm mb-4">
+                      <div className="flex justify-between">
+                        <span className="font-bold">Kết quả vệ sinh:</span>
+                        <span className="text-emerald-600 font-bold">{report?.roomReport?.ketquavesinh || 'Tốt'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-bold">Trạng thái phòng:</span>
+                        <span>{report?.roomReport?.trangthai || 'Bình thường'}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-emerald-500 rounded-full" />
-                      <span className="font-bold">Vật dụng:</span>
-                      <span>Đầy đủ theo biên bản bàn giao ban đầu.</span>
-                    </div>
+                    
+                    <p className="text-[12px] font-bold text-slate-400 uppercase mb-2">Chi tiết tài sản bàn giao:</p>
+                    <table className="min-w-full border border-slate-200 text-xs text-left">
+                      <thead className="bg-slate-50">
+                        <tr>
+                          <th className="px-3 py-2 border">Vật dụng</th>
+                          <th className="px-3 py-2 border text-center">SL</th>
+                          <th className="px-3 py-2 border">Hiện trạng nhận</th>
+                          <th className="px-3 py-2 border">Hiện trạng trả</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {report?.handover?.chi_tiet_ban_giao?.map((item, idx) => (
+                          <tr key={idx}>
+                            <td className="px-3 py-2 border">{item.tai_san_trang_thiet_bi?.tenvatdung}</td>
+                            <td className="px-3 py-2 border text-center">{item.soluong}</td>
+                            <td className="px-3 py-2 border">{item.hientrangnhan}</td>
+                            <td className="px-3 py-2 border">{item.hientrangtra || 'Tốt'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </section>
 
                 {/* 4. Financial Obligations */}
                 <section>
                   <h3 className="text-sm font-bold uppercase border-b-2 border-slate-100 pb-2 mb-4 text-primary">IV. Nghĩa vụ tài chính</h3>
-                  <p className="text-sm mb-4">Căn cứ bảng đối soát tài chính, các nghĩa vụ đã được giải quyết:</p>
-                  <div className="bg-primary/5 p-5 rounded-2xl border border-primary/10">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-bold text-navy uppercase">Tổng số tiền hoàn trả:</span>
-                      <span className="text-xl font-black text-primary underline underline-offset-8 decoration-primary/20">
-                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(5200000)}
-                      </span>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center bg-primary/5 p-4 rounded-xl border border-primary/10">
+                      <div>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase">Số tiền hoàn cọc</p>
+                        <p className="text-xl font-black text-primary">
+                          {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(report?.reconciliation?.sotienhoancoc || 0)}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase">Trạng thái đối soát</p>
+                        <p className="text-sm font-bold text-navy">{report?.reconciliation?.trangthai || 'Đã đối soát'}</p>
+                      </div>
                     </div>
+
+                    {report?.reconciliation?.khoan_khau_tru?.length > 0 && (
+                      <div className="px-4">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">Các khoản khấu trừ:</p>
+                        <div className="space-y-1">
+                          {report.reconciliation.khoan_khau_tru.map((item, idx) => (
+                            <div key={idx} className="flex justify-between text-xs py-1 border-b border-dashed border-slate-100">
+                              <span>{item.tenkhoan}</span>
+                              <span className="font-bold text-rose-500">-{new Intl.NumberFormat('vi-VN').format(item.sotien)}đ</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </section>
 
@@ -184,13 +244,13 @@ const MHXemTruocIn = () => {
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-lg border-t border-slate-200/60 flex justify-center gap-4 z-10">
           <button 
             onClick={btnHuy_Click}
-            className="px-8 py-3.5 rounded-2xl border border-slate-200 font-bold text-slate-600 hover:bg-slate-50 transition-all"
+            className="px-8 py-3.5 rounded-2xl border border-slate-200 font-bold text-slate-600 hover:bg-slate-50 transition-all active:scale-[0.98]"
           >
             Đóng
           </button>
           <button 
             onClick={btnInBienBan_Click}
-            className="px-10 py-3.5 rounded-2xl bg-primary shadow-lg shadow-primary/25 font-black text-white hover:bg-primary-dark transition-all flex items-center gap-2"
+            className="px-10 py-3.5 rounded-2xl bg-primary shadow-lg shadow-primary/25 font-black text-white hover:bg-primary-dark transition-all active:scale-[0.98] flex items-center gap-2"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
             In biên bản

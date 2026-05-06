@@ -274,6 +274,10 @@ const MHTaoBienBanTraPhong = () => {
             label: "Thử lại",
             onClick: () => setShowError(false)
           }}
+          secondaryAction={{
+            label: "Hủy",
+            onClick: () => navigate('/danh-sach-hop-dong')
+          }}
         />
       </div>
     </MainLayout>

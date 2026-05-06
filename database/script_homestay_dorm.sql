@@ -194,6 +194,7 @@ CREATE TABLE HOP_DONG (
     TrangThai       VARCHAR(60)     NOT NULL CHECK (TrangThai IN (
                         'Mới', 'Chưa xác nhận', 'Đã ký xác nhận', 'Đã hủy',
                         'Đã đăng ký lịch trả phòng', 'Đã đối soát',
+                        'Chờ ký biên bản trả phòng',
                         'Đã hoàn tất thủ tục trả phòng', 'Đã thanh lý')),
     LyDoHuy         TEXT,
     MinhChungKy     VARCHAR(255),
