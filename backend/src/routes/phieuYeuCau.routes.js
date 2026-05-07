@@ -91,14 +91,14 @@ router.get('/chi-tiet/:mayc', async (req, res, next) => {
   }
 });
 
-// GET /api/phieu-yeu-cau/gio-boi?manv=NV02&ngay=2025-05-06
-router.get('/gio-boi', async (req, res, next) => {
+// GET /api/phieu-yeu-cau/gio-ban?manv=NV02&ngay=2025-05-06
+router.get('/gio-ban', async (req, res, next) => {
   try {
     const { manv, ngay } = req.query;
     if (!manv || !ngay) {
       return res.status(400).json({ success: false, message: 'Thiếu manv hoặc ngay' });
     }
-    const result = await LichHen_BUS.layGioBoiTheoNgay(manv, ngay);
+    const result = await LichHen_BUS.layGioBanTheoNgay(manv, ngay);
     res.status(200).json(result);
   } catch (error) {
     next(error);

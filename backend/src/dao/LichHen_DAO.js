@@ -6,7 +6,7 @@ class LichHen_DAO {
    * @param {string} manv - Mã nhân viên
    * @param {string} ngay - Ngày dạng 'YYYY-MM-DD'
    */
-  static async layGioBoiTheoNgay(manv, ngay) {
+  static async layGioBanTheoNgay(manv, ngay) {
     // Tìm các phiếu của nhân viên có thoigianhenxem trong ngày đó
     // và trạng thái chưa huỷ
     const startOfDay = `${ngay}T00:00:00`;
@@ -21,7 +21,7 @@ class LichHen_DAO {
       .not('trangthai', 'eq', 'Đã huỷ');
 
     if (error) {
-      console.error('Lỗi LichHen_DAO.layGioBoiTheoNgay:', error);
+      console.error('Lỗi LichHen_DAO.layGioBanTheoNgay:', error);
       return { success: false, error };
     }
 

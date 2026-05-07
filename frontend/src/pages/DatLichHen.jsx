@@ -57,7 +57,7 @@ export default function DatLichHen() {
     setLoadingSlots(true);
     setSelectedSlot(''); // reset slot đã chọn khi đổi ngày
 
-    fetch(`http://localhost:3001/api/phieu-yeu-cau/gio-boi?manv=${manv}&ngay=${ngay}`)
+    fetch(`http://localhost:3001/api/phieu-yeu-cau/gio-ban?manv=${manv}&ngay=${ngay}`)
       .then(res => res.json())
       .then(json => {
         if (json.success) {
