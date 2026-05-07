@@ -37,7 +37,7 @@ function GhiNhanMinhChungPage() {
       <ModalThongBao
         isOpen={modal.isOpen}
         message={modal.message}
-        onClose={() => { setModal({ isOpen: false, message: '' }); navigate(`/deposit/${id}`); }}
+        onClose={() => { setModal({ isOpen: false, message: '' }); navigate(`/thanh-toan/${id}`); }}
       />
     </div>
   );

@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import MainLayout from '../components/MainLayout';
-import AppHeader from '../components/AppHeader';
 import { getReportDetails } from '../services/checkout.service';
 import { useReactToPrint } from 'react-to-print';
 import ModalThongBao from '../components/ModalThongBao';
 
-const MHXemTruocIn = () => {
+const XemTruocIn = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [report, setReport] = useState(null);
@@ -60,8 +59,6 @@ const MHXemTruocIn = () => {
   return (
     <MainLayout>
       <div className="flex flex-col h-full bg-slate-100/80">
-        <AppHeader title="Xem trước in biên bản" onBack={btnHuy_Click} />
-        
         <div className="flex-1 overflow-auto p-4 md:p-10">
           <div className="max-w-4xl mx-auto space-y-6 pb-20">
             
@@ -273,4 +270,4 @@ const MHXemTruocIn = () => {
   );
 };
 
-export default MHXemTruocIn;
+export default XemTruocIn;

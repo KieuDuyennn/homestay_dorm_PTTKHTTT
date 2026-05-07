@@ -21,8 +21,8 @@ function ChiTietThanhToanCocPage() {
       <p>Số tiền: {formatCurrency(detail.soTien)}</p>
       <p>Trạng thái: {detail.trangThai}</p>
       <p>Ngày tạo: {formatDate(detail.ngayTao)}</p>
-      <button onClick={() => navigate(`/deposit/${id}/evidence`)}>Ghi nhận minh chứng</button>
-      <button onClick={() => navigate(`/deposit/${id}/approve`)}>Phê duyệt giao dịch</button>
+      <button onClick={() => navigate(`/thanh-toan/${id}/evidence`)}>Ghi nhận minh chứng</button>
+      <button onClick={() => navigate(`/thanh-toan/${id}/approve`)}>Phê duyệt giao dịch</button>
     </div>
   );
 }

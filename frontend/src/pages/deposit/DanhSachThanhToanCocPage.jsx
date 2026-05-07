@@ -24,7 +24,7 @@ function DanhSachThanhToanCocPage() {
       <SearchBar value={search} onChange={setSearch} placeholder="Tìm sinh viên..." />
       <div className="list">
         {filtered.map((item) => (
-          <div key={item.id} onClick={() => navigate(`/deposit/${item.id}`)}>
+          <div key={item.id} onClick={() => navigate(`/thanh-toan/${item.id}`)}>
             <PhieuCard
               title={item.tenSinhVien}
               amount={formatCurrency(item.soTien)}

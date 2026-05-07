@@ -35,7 +35,7 @@ function PheDuyetGiaoDichPage() {
       <ModalThongBao
         isOpen={modal.isOpen}
         message={modal.message}
-        onClose={() => { setModal({ isOpen: false, message: '' }); navigate('/deposit'); }}
+        onClose={() => { setModal({ isOpen: false, message: '' }); navigate('/thanh-toan'); }}
       />
     </div>
   );

@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import MainLayout from '../components/MainLayout';
-import AppHeader from '../components/AppHeader';
 import { getContractById, getCreationData, createCheckoutReport } from '../services/checkout.service';
 import ModalThongBao from '../components/ModalThongBao';
 
-const MHTaoBienBanTraPhong = () => {
+const TaoBienBanTraPhong = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   
@@ -68,8 +67,6 @@ const MHTaoBienBanTraPhong = () => {
   return (
     <MainLayout>
       <div className="flex flex-col h-full bg-slate-50/50">
-        <AppHeader title="Tạo biên bản trả phòng" onBack={btnQuayLai_Click} />
-        
         <div className="flex-1 overflow-auto p-6">
           <div className="max-w-5xl mx-auto space-y-6 pb-20">
             
@@ -284,4 +281,4 @@ const MHTaoBienBanTraPhong = () => {
   );
 };
 
-export default MHTaoBienBanTraPhong;
+export default TaoBienBanTraPhong;

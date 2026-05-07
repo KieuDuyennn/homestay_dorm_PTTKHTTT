@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import MainLayout from '../components/MainLayout';
-import AppHeader from '../components/AppHeader';
 import SearchBar from '../components/SearchBar';
 import { getContractsByStatus, searchContracts } from '../services/checkout.service';
 
-const MHDanhSachHopDong = () => {
+const DanhSachHopDong = () => {
   const location = useLocation();
   const navigate = useNavigate();
   
@@ -68,8 +67,6 @@ const MHDanhSachHopDong = () => {
   return (
     <MainLayout>
       <div className="flex flex-col h-full bg-slate-50/50">
-        <AppHeader title={pageTitle} showBack={false} />
-        
         <div className="flex-1 overflow-auto p-6">
           <div className="max-w-6xl mx-auto space-y-6">
             
@@ -160,4 +157,4 @@ const MHDanhSachHopDong = () => {
   );
 };
 
-export default MHDanhSachHopDong;
+export default DanhSachHopDong;

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../services/auth.service';
+import { getHomePathForRole } from '../utils/permissions';
 
 const DangNhap = () => {
   const [username, setUsername] = useState('');
@@ -17,13 +18,8 @@ const DangNhap = () => {
     try {
       // Primary attempt: Use the login service
       const data = await login(username, password);
-      
-      // Redirect based on role or to default page
-      if (data.user.role === 'Quản lý') {
-        navigate('/danh-sach-hop-dong');
-      } else {
-        navigate('/phieu-yeu-cau');
-      }
+
+      navigate(getHomePathForRole(data.user.role));
     } catch (err) {
       console.error(err);
       
@@ -31,7 +27,7 @@ const DangNhap = () => {
       if (username === 'nv_ban_hang' && password === '123456') {
         const userData = { username, role: 'Sale', name: 'Nguyễn Văn A', manv: 'NV02' };
         localStorage.setItem('user', JSON.stringify(userData));
-        navigate('/phieu-yeu-cau');
+        navigate(getHomePathForRole(userData.role));
         return;
       }
 
