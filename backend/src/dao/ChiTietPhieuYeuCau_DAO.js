@@ -1,8 +1,8 @@
 const supabase = require('../config/supabase');
 
 class ChiTietPhieuYeuCau_DAO {
-  static async insertMany(items) {
-    console.log('=== ChiTietPhieuYeuCau_DAO.insertMany ===');
+  static async insertChiTietMany(items) {
+    console.log('=== ChiTietPhieuYeuCau_DAO.insertChiTietMany ===');
     console.log('Items nhận:', items);
     
     if (!Array.isArray(items) || items.length === 0) {
@@ -18,7 +18,7 @@ class ChiTietPhieuYeuCau_DAO {
       .select();
 
     if (error) {
-      console.error('Lỗi ChiTietPhieuYeuCau_DAO.insertMany:', error);
+      console.error('Lỗi ChiTietPhieuYeuCau_DAO.insertChiTietMany:', error);
       return { success: false, error };
     }
     console.log('Insert thành công! Data trả về:', data);

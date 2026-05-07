@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const PhieuYeuCau_BUS = require('../services/PhieuYeuCau_BUS');
 const TimKiemPhong_BUS = require('../services/TimKiemPhong_BUS');
-const LichHen_DAO = require('../dao/LichHen_DAO');
+const LichHen_BUS = require('../services/LichHen_BUS');
+const PhieuYeuCau_BUS = require('../services/PhieuYeuCau_BUS');
 
 // POST /api/phieu-yeu-cau/dang-ky
 router.post('/dang-ky', async (req, res, next) => {
@@ -52,38 +52,10 @@ router.get('/tim-kiem-phong', async (req, res, next) => {
 // GET /api/phieu-yeu-cau/danh-sach?trangthai=...&keyword=...
 router.get('/danh-sach', async (req, res, next) => {
   try {
-    const supabase = require('../config/supabase');
     const { trangthai, keyword } = req.query;
-
-    let query = supabase
-      .from('phieu_yeu_cau_xem_phong')
-      .select(`
-        mayc, soluongdukien, loaiphong, mucgia,
-        thoigiandukienvao, thoihanthue, thoigianhenxem,
-        gioitinh, ngayguiyeucau, trangthai, loaihinhthue,
-        manv, makh,
-        khach_hang (makh, hoten, sdt, email, gioitinh, socccd)
-      `)
-      .order('ngayguiyeucau', { ascending: false });
-
-    if (trangthai) {
-      query = query.eq('trangthai', trangthai);
-    }
-
-    const { data, error } = await query;
-    if (error) return res.status(500).json({ success: false, error });
-
-    let result = data || [];
-    if (keyword) {
-      const kw = keyword.toLowerCase();
-      result = result.filter(p =>
-        p.mayc?.toLowerCase().includes(kw) ||
-        p.khach_hang?.hoten?.toLowerCase().includes(kw) ||
-        p.khach_hang?.sdt?.includes(kw)
-      );
-    }
-
-    res.json({ success: true, data: result });
+    const result = await PhieuYeuCau_BUS.getDanhSach(trangthai, keyword);
+    if (!result.success) return res.status(500).json(result);
+    res.json(result);
   } catch (error) {
     next(error);
   }
@@ -99,20 +71,9 @@ router.patch('/cap-nhat-lich-hen', async (req, res, next) => {
     if (!mayc || !thoigianhenxem) {
       return res.status(400).json({ success: false, message: 'Thiếu mayc hoặc thoigianhenxem' });
     }
-    const supabase = require('../config/supabase');
-    const { data, error } = await supabase
-      .from('phieu_yeu_cau_xem_phong')
-      .update({ thoigianhenxem })
-      .eq('mayc', mayc)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Lỗi DB cap-nhat-lich-hen:', error);
-      return res.status(500).json({ success: false, error });
-    }
-    console.log('✓ cap-nhat-lich-hen thành công:', data?.mayc, data?.thoigianhenxem);
-    res.json({ success: true, data });
+    const result = await PhieuYeuCau_BUS.capNhatLichHen(mayc, thoigianhenxem);
+    if (!result.success) return res.status(500).json(result);
+    res.json(result);
   } catch (error) {
     next(error);
   }
@@ -122,50 +83,9 @@ router.patch('/cap-nhat-lich-hen', async (req, res, next) => {
 router.get('/chi-tiet/:mayc', async (req, res, next) => {
   try {
     const { mayc } = req.params;
-    const supabase = require('../config/supabase');
-    
-    // Lấy thông tin phiếu và khách hàng
-    const { data: phieuData, error: phieuError } = await supabase
-      .from('phieu_yeu_cau_xem_phong')
-      .select(`
-        *,
-        khach_hang (*)
-      `)
-      .eq('mayc', mayc)
-      .single();
-
-    if (phieuError) {
-      return res.status(500).json({ success: false, error: phieuError });
-    }
-
-    // Lấy chi tiết các phòng/giường khách chọn
-    // JOIN qua giuong → phong vì chi_tiet_phieu_yeu_cau có FK tới giuong, không trực tiếp tới phong
-    const { data: chiTietData, error: chiTietError } = await supabase
-      .from('chi_tiet_phieu_yeu_cau')
-      .select(`
-        mayc,
-        magiuong,
-        maphong,
-        trangthaichot,
-        giuong (
-          *,
-          phong (*)
-        )
-      `)
-      .eq('mayc', mayc);
-
-    if (chiTietError) {
-      console.error('Lỗi lấy chi tiết phiếu:', chiTietError);
-      // Tiếp tục trả về phiếu dù không có chi tiết
-    }
-
-    res.json({ 
-      success: true, 
-      data: {
-        ...phieuData,
-        chi_tiet: chiTietData || []
-      } 
-    });
+    const result = await PhieuYeuCau_BUS.layChiTiet(mayc);
+    if (!result.success) return res.status(500).json(result);
+    res.json(result);
   } catch (error) {
     next(error);
   }
@@ -178,7 +98,7 @@ router.get('/gio-boi', async (req, res, next) => {
     if (!manv || !ngay) {
       return res.status(400).json({ success: false, message: 'Thiếu manv hoặc ngay' });
     }
-    const result = await LichHen_DAO.layGioBoiTheoNgay(manv, ngay);
+    const result = await LichHen_BUS.layGioBoiTheoNgay(manv, ngay);
     res.status(200).json(result);
   } catch (error) {
     next(error);
@@ -196,22 +116,9 @@ router.patch('/update-trang-thai-chot', async (req, res, next) => {
       });
     }
 
-    const supabase = require('../config/supabase');
-    const { data, error } = await supabase
-      .from('chi_tiet_phieu_yeu_cau')
-      .update({ trangthaichot })
-      .eq('mayc', mayc)
-      .eq('maphong', maphong)
-      .eq('magiuong', magiuong)
-      .select();
-
-    if (error) {
-      console.error('Lỗi update trangthaichot:', error);
-      return res.status(500).json({ success: false, error });
-    }
-
-    console.log('✓ Update trangthaichot thành công');
-    res.json({ success: true, data });
+    const result = await PhieuYeuCau_BUS.updateTrangThaiChot(mayc, maphong, magiuong, trangthaichot);
+    if (!result.success) return res.status(500).json(result);
+    res.json(result);
   } catch (error) {
     next(error);
   }
@@ -221,23 +128,9 @@ router.patch('/update-trang-thai-chot', async (req, res, next) => {
 router.delete('/chi-tiet/:mayc/:maphong/:magiuong', async (req, res, next) => {
   try {
     const { mayc, maphong, magiuong } = req.params;
-    const supabase = require('../config/supabase');
-    
-    const { data, error } = await supabase
-      .from('chi_tiet_phieu_yeu_cau')
-      .delete()
-      .eq('mayc', mayc)
-      .eq('maphong', maphong)
-      .eq('magiuong', magiuong)
-      .select();
-
-    if (error) {
-      console.error('Lỗi xóa chi tiết phiếu:', error);
-      return res.status(500).json({ success: false, error });
-    }
-
-    console.log('✓ Xóa chi tiết phiếu thành công');
-    res.json({ success: true, data });
+    const result = await PhieuYeuCau_BUS.deleteChiTiet(mayc, maphong, magiuong);
+    if (!result.success) return res.status(500).json(result);
+    res.json(result);
   } catch (error) {
     next(error);
   }
@@ -253,32 +146,9 @@ router.delete('/huy-lich/:mayc', async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Thiếu mayc' });
     }
 
-    const supabase = require('../config/supabase');
-
-    const { error: chiTietError } = await supabase
-      .from('chi_tiet_phieu_yeu_cau')
-      .delete()
-      .eq('mayc', mayc);
-
-    if (chiTietError) {
-      console.error('Lỗi xóa chi tiết khi hủy lịch:', chiTietError);
-      return res.status(500).json({ success: false, error: chiTietError });
-    }
-    console.log('✓ Đã xóa chi tiết phiếu cho mayc:', mayc);
-
-    const { data, error } = await supabase
-      .from('phieu_yeu_cau_xem_phong')
-      .delete()
-      .eq('mayc', mayc)
-      .select();
-
-    if (error) {
-      console.error('Lỗi xóa phiếu khi hủy lịch:', error);
-      return res.status(500).json({ success: false, error });
-    }
-
-    console.log('✓ Hủy lịch thành công:', mayc, 'Số bản ghi phiếu đã xóa:', data?.length || 0);
-    res.json({ success: true, data });
+    const result = await PhieuYeuCau_BUS.huyLich(mayc);
+    if (!result.success) return res.status(500).json(result);
+    res.json(result);
   } catch (error) {
     next(error);
   }
@@ -295,20 +165,9 @@ router.patch('/update-trang-thai', async (req, res, next) => {
       });
     }
 
-    const supabase = require('../config/supabase');
-    const { data, error } = await supabase
-      .from('phieu_yeu_cau_xem_phong')
-      .update({ trangthai })
-      .eq('mayc', mayc)
-      .select();
-
-    if (error) {
-      console.error('Lỗi update trangthai phiếu:', error);
-      return res.status(500).json({ success: false, error });
-    }
-
-    console.log('✓ Update trangthai phiếu thành công:', trangthai);
-    res.json({ success: true, data });
+    const result = await PhieuYeuCau_BUS.updateTrangThai(mayc, trangthai);
+    if (!result.success) return res.status(500).json(result);
+    res.json(result);
   } catch (error) {
     next(error);
   }

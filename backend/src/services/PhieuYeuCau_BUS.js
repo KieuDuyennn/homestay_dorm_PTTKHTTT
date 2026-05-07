@@ -1,4 +1,4 @@
-const KhachHang_DAO = require('../dao/KhachHang_DAO');
+const KhachHang_BUS = require('./KhachHang_BUS');
 const PhieuYeuCau_DAO = require('../dao/PhieuYeuCau_DAO');
 const ChiTietPhieuYeuCau_DAO = require('../dao/ChiTietPhieuYeuCau_DAO');
 
@@ -7,7 +7,7 @@ class PhieuYeuCau_BUS {
     try {
       // 1. Kiểm tra Khách hàng đã tồn tại qua CCCD chưa
       let maKH;
-      const khExist = await KhachHang_DAO.findByCCCD(data.CCCD);
+      const khExist = await KhachHang_BUS.findByCCCD(data.CCCD);
       if (khExist.success && khExist.data) {
         maKH = khExist.data.makh;
       } else {
@@ -25,7 +25,7 @@ class PhieuYeuCau_BUS {
           trangthai: 'Chờ kiểm tra'  // Constraint: 'Hợp lệ' | 'Chờ kiểm tra'
         };
 
-        const khResult = await KhachHang_DAO.insert(khachHangData);
+        const khResult = await KhachHang_BUS.insert(khachHangData);
         if (!khResult.success) {
           return { success: false, message: 'Không thể tạo thông tin khách hàng', error: khResult.error };
         }
@@ -120,9 +120,9 @@ class PhieuYeuCau_BUS {
           // Insert all records
           console.log(`Tổng records cần insert: ${records.length}`);
           console.log('Records:', records);
-          if (records.length > 0) {
-            const ctResult = await ChiTietPhieuYeuCau_DAO.insertMany(records);
-            console.log('ChiTietPhieuYeuCau_DAO.insertMany result:', ctResult);
+            if (records.length > 0) {
+            const ctResult = await ChiTietPhieuYeuCau_DAO.insertChiTietMany(records);
+            console.log('ChiTietPhieuYeuCau_DAO.insertChiTietMany result:', ctResult);
             if (!ctResult.success) {
               console.error('Không thể lưu chi tiết phiếu yêu cầu:', ctResult.error);
               return { success: true, message: 'Tạo phiếu yêu cầu thành công (chi tiết chưa lưu)', data: { MaYC: maycSaved, MaKH: maKH }, warning: ctResult.error };
@@ -145,6 +145,83 @@ class PhieuYeuCau_BUS {
     } catch (error) {
       console.error("Lỗi tại PhieuYeuCau_BUS.taoPhieuYeuCau:", error);
       return { success: false, message: 'Lỗi server khi tạo phiếu yêu cầu' };
+    }
+  }
+
+  static async capNhatLichHen(mayc, thoigianhenxem) {
+    try {
+      return await PhieuYeuCau_DAO.updateLichHen(mayc, thoigianhenxem);
+    } catch (error) {
+      console.error('Lỗi PhieuYeuCau_BUS.capNhatLichHen:', error);
+      return { success: false, error };
+    }
+  }
+
+  static async layChiTiet(mayc) {
+    try {
+      return await PhieuYeuCau_DAO.getChiTiet(mayc);
+    } catch (error) {
+      console.error('Lỗi PhieuYeuCau_BUS.layChiTiet:', error);
+      return { success: false, error };
+    }
+  }
+
+  static async updateTrangThaiChot(mayc, maphong, magiuong, trangthaichot) {
+    try {
+      return await PhieuYeuCau_DAO.updateTrangThaiChot(mayc, maphong, magiuong, trangthaichot);
+    } catch (error) {
+      console.error('Lỗi PhieuYeuCau_BUS.updateTrangThaiChot:', error);
+      return { success: false, error };
+    }
+  }
+
+  static async deleteChiTiet(mayc, maphong, magiuong) {
+    try {
+      return await PhieuYeuCau_DAO.deleteChiTiet(mayc, maphong, magiuong);
+    } catch (error) {
+      console.error('Lỗi PhieuYeuCau_BUS.deleteChiTiet:', error);
+      return { success: false, error };
+    }
+  }
+
+  static async huyLich(mayc) {
+    try {
+      // delete chi_tiet first
+      const { success: delCTSuccess, error: delCTError } = await PhieuYeuCau_DAO.deleteChiTiet(mayc, null, null).catch(() => ({}));
+      // Note: deleteChiTiet expects specific keys; we will use supabase delete by mayc in DAO deletePhieu which already deletes phieu. But ensure chi_tiet removed first.
+      const supabase = require('../config/supabase');
+      const { error: chiTietError } = await supabase
+        .from('chi_tiet_phieu_yeu_cau')
+        .delete()
+        .eq('mayc', mayc);
+
+      if (chiTietError) {
+        console.error('Lỗi xóa chi_tiet trong huyLich:', chiTietError);
+        return { success: false, error: chiTietError };
+      }
+
+      return await PhieuYeuCau_DAO.deletePhieu(mayc);
+    } catch (error) {
+      console.error('Lỗi PhieuYeuCau_BUS.huyLich:', error);
+      return { success: false, error };
+    }
+  }
+
+  static async updateTrangThai(mayc, trangthai) {
+    try {
+      return await PhieuYeuCau_DAO.updateTrangThai(mayc, trangthai);
+    } catch (error) {
+      console.error('Lỗi PhieuYeuCau_BUS.updateTrangThai:', error);
+      return { success: false, error };
+    }
+  }
+
+  static async getDanhSach(trangthai, keyword) {
+    try {
+      return await PhieuYeuCau_DAO.getDanhSach(trangthai, keyword);
+    } catch (error) {
+      console.error('Lỗi PhieuYeuCau_BUS.getDanhSach:', error);
+      return { success: false, error };
     }
   }
 }

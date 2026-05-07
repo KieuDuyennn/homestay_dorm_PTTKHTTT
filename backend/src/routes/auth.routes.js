@@ -35,37 +35,15 @@ router.post('/login', authLimiter, async (req, res, next) => {
 router.post('/login-simple', authLimiter, async (req, res, next) => {
   try {
     const { madangnhap, matkhau } = req.body;
-    const supabase = require('../config/supabase');
-
-    // Tìm tài khoản
-    const { data: tk, error: tkErr } = await supabase
-      .from('tai_khoan')
-      .select('madangnhap, manv')
-      .eq('madangnhap', madangnhap)
-      .single();
-
-    if (tkErr || !tk) {
-      return res.json({ success: false, message: 'Tài khoản không tồn tại' });
-    }
-
-    // Lấy thông tin nhân viên
-    const { data: nv } = await supabase
-      .from('nhan_vien')
-      .select('manv, hoten, loainv')
-      .eq('manv', tk.manv)
-      .single();
-
-    // Lưu ý: matkhau trong DB là bcrypt hash, tạm thời dùng plaintext để demo
-    // Nếu cần bcrypt, cài thêm package bcrypt
-    const user = {
-      manv: tk.manv,
-      madangnhap: tk.madangnhap,
-      name: nv?.hoten || madangnhap,
-      role: nv?.loainv || 'Sale',
-    };
-
-    return res.json({ success: true, user });
+    // Delegate to auth service to keep controller thin
+    const result = await authService.DangNhap(madangnhap, matkhau);
+    // authService.DangNhap returns { token, user } or throws
+    res.json({ success: true, data: result });
   } catch (err) {
+    // Return auth error in JSON format
+    if (err && err.status === 401) {
+      return res.status(401).json({ success: false, message: err.message });
+    }
     next(err);
   }
 });
