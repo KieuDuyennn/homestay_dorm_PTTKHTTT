@@ -18,6 +18,8 @@ import ChiTietThanhToanCocPage from './pages/deposit/ChiTietThanhToanCocPage';
 import GhiNhanMinhChungPage from './pages/deposit/GhiNhanMinhChungPage';
 import PheDuyetGiaoDichPage from './pages/deposit/PheDuyetGiaoDichPage';
 import MainLayout from './components/MainLayout';
+import { SaleContractLookup } from './pages/sales/SaleContractLookup';
+import { SaleReturnSchedule } from './pages/sales/SaleReturnSchedule';
 import { getHomePathForRole, getStoredUser, getUserRole, ROLES } from './utils/permissions';
 
 function ProtectedRoute({ allowedRoles, children }) {
@@ -58,6 +60,8 @@ function App() {
         <Route path="/phieu-yeu-cau" element={<ProtectedRoute allowedRoles={saleRoles}><DanhSachPYCXemPhong /></ProtectedRoute>} />
         <Route path="/phieu-yeu-cau/:id" element={<ProtectedRoute allowedRoles={saleRoles}><ChiTietPYCXemPhong /></ProtectedRoute>} />
         <Route path="/ghi-nhan-xac-nhan-thue/:id" element={<ProtectedRoute allowedRoles={saleRoles}><GhiNhanXacNhanThue /></ProtectedRoute>} />
+        <Route path="/sale/contract-lookup" element={<ProtectedRoute allowedRoles={saleRoles}><SaleContractLookup /></ProtectedRoute>} />
+        <Route path="/sale/return-schedule/:contractId" element={<ProtectedRoute allowedRoles={saleRoles}><SaleReturnSchedule /></ProtectedRoute>} />
 
         <Route path="/thanh-toan" element={<ProtectedRoute allowedRoles={accountantRoles}><DepositLayout><DanhSachThanhToanCocPage /></DepositLayout></ProtectedRoute>} />
         <Route path="/thanh-toan/:id" element={<ProtectedRoute allowedRoles={accountantRoles}><DepositLayout><ChiTietThanhToanCocPage /></DepositLayout></ProtectedRoute>} />

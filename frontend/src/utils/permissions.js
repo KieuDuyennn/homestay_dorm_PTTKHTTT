@@ -31,6 +31,7 @@ export const MENU_ITEMS_BY_ROLE = {
     { id: 'dang-ky-thue-phong', label: 'Tiếp nhận phiếu yêu cầu', icon: '📝', path: '/dang-ky-thue-phong' },
     { id: 'lich-hen', label: 'Lịch hẹn', icon: '🗓️', path: '/lich-hen' },
     { id: 'phieu-yeu-cau', label: 'PYC Xem phòng', icon: '📋', path: '/phieu-yeu-cau' },
+    { id: 'lich-tra-phong', label: 'Lịch trả phòng', icon: '📅', path: '/sale/contract-lookup', activePaths: ['/sale/contract-lookup', '/sale/return-schedule'] },
   ],
   [ROLES.ACCOUNTANT]: [
     { id: 'thanh-toan', label: 'Thanh toán cọc', icon: '$', path: '/thanh-toan', activePaths: ['/thanh-toan', '/deposit'] },
