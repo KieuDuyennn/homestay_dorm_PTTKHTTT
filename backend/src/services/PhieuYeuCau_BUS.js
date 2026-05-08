@@ -157,6 +157,15 @@ class PhieuYeuCau_BUS {
     }
   }
 
+  static async layGioBanTheoNgay(manv, ngay) {
+    try {
+      return await PhieuYeuCau_DAO.layGioBanTheoNgay(manv, ngay);
+    } catch (error) {
+      console.error('Lỗi PhieuYeuCau_BUS.layGioBanTheoNgay:', error);
+      return { success: false, error };
+    }
+  }
+
   static async layChiTiet(mayc) {
     try {
       return await PhieuYeuCau_DAO.getChiTiet(mayc);
