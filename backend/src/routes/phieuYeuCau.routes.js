@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const TimKiemPhong_BUS = require('../services/TimKiemPhong_BUS');
-const LichHen_BUS = require('../services/LichHen_BUS');
 const PhieuYeuCau_BUS = require('../services/PhieuYeuCau_BUS');
 
 // POST /api/phieu-yeu-cau/dang-ky
@@ -98,7 +97,7 @@ router.get('/gio-ban', async (req, res, next) => {
     if (!manv || !ngay) {
       return res.status(400).json({ success: false, message: 'Thiếu manv hoặc ngay' });
     }
-    const result = await LichHen_BUS.layGioBanTheoNgay(manv, ngay);
+    const result = await PhieuYeuCau_BUS.layGioBanTheoNgay(manv, ngay);
     res.status(200).json(result);
   } catch (error) {
     next(error);

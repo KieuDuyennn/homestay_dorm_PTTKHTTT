@@ -30,6 +30,31 @@ class PhieuYeuCau_DAO {
     return { success: true, data };
   }
 
+  static async layGioBanTheoNgay(manv, ngay) {
+    const startOfDay = `${ngay}T00:00:00`;
+    const endOfDay = `${ngay}T23:59:59`;
+
+    const { data, error } = await supabase
+      .from('phieu_yeu_cau_xem_phong')
+      .select('thoigianhenxem, trangthai, mayc')
+      .eq('manv', manv)
+      .gte('thoigianhenxem', startOfDay)
+      .lte('thoigianhenxem', endOfDay)
+      .not('trangthai', 'eq', 'Đã huỷ');
+
+    if (error) {
+      console.error('Lỗi PhieuYeuCau_DAO.layGioBanTheoNgay:', error);
+      return { success: false, error };
+    }
+
+    const gioBan = (data || []).map(p => {
+      const gio = new Date(p.thoigianhenxem).getUTCHours();
+      return { gio, mayc: p.mayc, trangthai: p.trangthai };
+    });
+
+    return { success: true, data: gioBan };
+  }
+
   static async getChiTiet(mayc) {
     const { data, error } = await supabase
       .from('phieu_yeu_cau_xem_phong')

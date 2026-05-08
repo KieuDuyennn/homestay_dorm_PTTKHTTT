@@ -14,6 +14,7 @@ const LapYeuCauThanhToan = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [errorContext, setErrorContext] = useState('');
   const [paymentId, setPaymentId] = useState('');
 
   useEffect(() => {
@@ -33,6 +34,7 @@ const LapYeuCauThanhToan = () => {
     } catch (error) {
       console.error('Error loading data:', error);
       setErrorMessage('Không thể tải thông tin hợp đồng.');
+      setErrorContext('load');
       setShowError(true);
     } finally {
       setLoading(false);
@@ -41,6 +43,7 @@ const LapYeuCauThanhToan = () => {
 
   const btnXacNhan_Click = async () => {
     try {
+      setShowError(false);
       setSubmitting(true);
       const user = JSON.parse(localStorage.getItem('user'));
       await createInitialPayment({ 
@@ -50,11 +53,23 @@ const LapYeuCauThanhToan = () => {
       });
       setShowSuccess(true);
     } catch (error) {
-      setErrorMessage(error.response?.data?.message || error.message || 'Có lỗi xảy ra khi tạo yêu cầu thanh toán.');
+      console.error('Error creating initial payment:', error);
+      setErrorMessage('Tạo thanh toán thất bại');
+      setErrorContext('create');
       setShowError(true);
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const btnThuLai_Click = () => {
+    setShowError(false);
+    if (errorContext === 'create') {
+      btnXacNhan_Click();
+      return;
+    }
+
+    HienThi(id);
   };
 
   const btnQuayLai_Click = () => {
@@ -241,7 +256,7 @@ const LapYeuCauThanhToan = () => {
           message={errorMessage}
           primaryAction={{
             label: "Thử lại",
-            onClick: () => setShowError(false)
+            onClick: btnThuLai_Click
           }}
           secondaryAction={{
             label: "Hủy",
