@@ -40,7 +40,7 @@ const DanhSachHopDong = () => {
     setContracts(ds);
   };
 
-  const btnTimKiem_Click = async (val) => {
+  const txtTimKiem_Change = async (val) => {
     try {
       setLoading(true);
       setKeyword(val);
@@ -53,7 +53,7 @@ const DanhSachHopDong = () => {
     }
   };
 
-  const grdDanhSach_RowClick = (hd) => {
+  const grdDanhSach_Click = (hd) => {
     if (hd.trangthai === 'Đã đối soát') {
       navigate(`/tao-bien-ban-tra-phong/${hd.mahd}`);
     } else if (hd.trangthai === 'Đã ký xác nhận') {
@@ -86,8 +86,8 @@ const DanhSachHopDong = () => {
                 <SearchBar 
                   placeholder="Tìm theo mã HD, tên khách hàng..." 
                   keyword={keyword}
-                  onTextChanged={btnTimKiem_Click}
-                  onClear={() => btnTimKiem_Click('')}
+                  onTextChanged={txtTimKiem_Change}
+                  onClear={() => txtTimKiem_Change('')}
                 />
               </div>
             </div>
@@ -102,7 +102,7 @@ const DanhSachHopDong = () => {
                 {contracts.map((hd) => (
                   <div 
                     key={hd.mahd}
-                    onClick={() => grdDanhSach_RowClick(hd)}
+                    onClick={() => grdDanhSach_Click(hd)}
                     className="group bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-md hover:border-primary/30 transition-all cursor-pointer relative overflow-hidden"
                   >
                     <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -mr-12 -mt-12 transition-all group-hover:bg-primary/10" />

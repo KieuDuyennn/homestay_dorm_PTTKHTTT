@@ -252,11 +252,11 @@ const TaoBienBanTraPhong = () => {
           title="Tạo biên bản thành công"
           message={`Biên bản trả phòng ${reportId} đã được tạo thành công và lưu vào hệ thống. Bạn có muốn xem trước và in biên bản không?`}
           primaryAction={{
-            label: "Xem trước và In",
+            label: "In biên bản",
             onClick: () => navigate(`/xem-truoc-in/${reportId}`)
           }}
           secondaryAction={{
-            label: "Để sau",
+            label: "Quay về trang chủ",
             onClick: () => navigate('/danh-sach-hop-dong')
           }}
         />
