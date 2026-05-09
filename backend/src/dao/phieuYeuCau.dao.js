@@ -15,10 +15,10 @@ class phieuYeuCauDao {
     return { success: true, data: data[0] };
   }
 
-  static async updateLichHen(mayc, thoigianhenxem) {
+  static async updateLichHen(mayc, thoigianhenxem, manv = 'NV01') {
     const { data, error } = await supabase
       .from('phieu_yeu_cau_xem_phong')
-      .update({ thoigianhenxem })
+      .update({ thoigianhenxem, manv })
       .eq('mayc', mayc)
       .select()
       .single();
@@ -31,8 +31,8 @@ class phieuYeuCauDao {
   }
 
   static async layGioBanTheoNgay(manv, ngay) {
-    const startOfDay = `${ngay}T00:00:00`;
-    const endOfDay = `${ngay}T23:59:59`;
+    const startOfDay = `${ngay}T00:00:00Z`;
+    const endOfDay = `${ngay}T23:59:59Z`;
 
     const { data, error } = await supabase
       .from('phieu_yeu_cau_xem_phong')
@@ -48,7 +48,9 @@ class phieuYeuCauDao {
     }
 
     const gioBan = (data || []).map(p => {
-      const gio = new Date(p.thoigianhenxem).getUTCHours();
+      const date = new Date(p.thoigianhenxem);
+      // Giả sử server có thể ở timezone khác, ta lấy UTC + 7 để ra giờ VN
+      const gio = (date.getUTCHours() + 7) % 24; 
       return { gio, mayc: p.mayc, trangthai: p.trangthai };
     });
 
@@ -238,6 +240,29 @@ class phieuYeuCauDao {
       return { success: false, error };
     }
     return { success: true, data };
+  }
+
+  // Sinh mã phiếu yêu cầu tăng dần
+  static async sinhMaPhieuYeuCau() {
+    const { data, error } = await supabase
+      .from('phieu_yeu_cau_xem_phong')
+      .select('mayc')
+      .like('mayc', 'YC%');
+
+    if (error) {
+      console.error('Lỗi phieuYeuCauDao.sinhMaPhieuYeuCau:', error);
+      return 'YC001'; // Fallback
+    }
+
+    if (!data || data.length === 0) return 'YC001';
+
+    const nums = data.map(d => {
+      const match = d.mayc.match(/^YC(\d+)$/);
+      return match ? parseInt(match[1]) : 0;
+    });
+
+    const maxNum = Math.max(0, ...nums);
+    return `YC${(maxNum + 1).toString().padStart(3, '0')}`;
   }
 }
 

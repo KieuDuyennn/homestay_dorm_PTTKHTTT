@@ -51,6 +51,29 @@ class khachHangDao {
     }
     return { success: true, data };
   }
+
+  // Sinh mã khách hàng tăng dần
+  static async sinhMaKhachHang() {
+    const { data, error } = await supabase
+      .from('khach_hang')
+      .select('makh')
+      .like('makh', 'KH%');
+
+    if (error) {
+      console.error('Lỗi khachHangDao.sinhMaKhachHang:', error);
+      return 'KH001'; // Fallback
+    }
+
+    if (!data || data.length === 0) return 'KH001';
+
+    const nums = data.map(d => {
+      const match = d.makh.match(/^KH(\d+)$/);
+      return match ? parseInt(match[1]) : 0;
+    });
+
+    const maxNum = Math.max(0, ...nums);
+    return `KH${(maxNum + 1).toString().padStart(3, '0')}`;
+  }
 }
 
 module.exports = khachHangDao;

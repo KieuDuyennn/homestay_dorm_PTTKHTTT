@@ -107,7 +107,7 @@ export default function NhuCauThuePhongPanel({ formData, onChange, errors }) {
             <option value="">Chọn thời hạn</option>
             <option value="3">3 tháng</option>
             <option value="6">6 tháng</option>
-            <option value="12">1 năm</option>
+            <option value="12">12 tháng</option>
           </select>
           {errors?.ThoiHanThue && <span className="text-red-500 text-xs">{errors.ThoiHanThue}</span>}
         </div>

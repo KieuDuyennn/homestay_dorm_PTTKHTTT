@@ -7,7 +7,7 @@ import ModalLoi from '../components/ModalLoi';
 
 export default function DangKyThuePhong() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = React.useState({
     HoTen: '',
     SoDienThoai: '',
     CCCD: '',
@@ -25,35 +25,94 @@ export default function DangKyThuePhong() {
     YeuCauKhac: ''
   });
 
+  React.useEffect(() => {
+    const savedData = sessionStorage.getItem('formDataYeuCau');
+    if (savedData) {
+      try {
+        setFormData(JSON.parse(savedData));
+      } catch (e) {
+        console.error('Lỗi load formData từ session:', e);
+      }
+    }
+  }, []);
+
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modalLoi, setModalLoi] = useState({ isOpen: false, message: '' });
 
+  const validateField = (name, value) => {
+    let error = '';
+    switch (name) {
+      case 'HoTen':
+        if (!value) error = 'Vui lòng nhập họ tên';
+        break;
+      case 'SoDienThoai':
+        if (!value) error = 'Vui lòng nhập số điện thoại';
+        else if (!/^\d{10}$/.test(value)) error = 'Số điện thoại phải có 10 chữ số';
+        break;
+      case 'CCCD':
+        if (!value) error = 'Vui lòng nhập số CCCD';
+        else if (!/^\d{12}$/.test(value)) error = 'CCCD phải có 12 chữ số';
+        break;
+      case 'Email':
+        if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) error = 'Email không hợp lệ';
+        break;
+      case 'DiaChi':
+        if (!value) error = 'Vui lòng nhập địa chỉ';
+        break;
+      case 'GioiTinh':
+        if (!value) error = 'Vui lòng chọn giới tính';
+        break;
+      case 'NgaySinh':
+        if (!value) error = 'Vui lòng chọn ngày sinh';
+        break;
+      case 'ChiNhanh':
+        if (!value) error = 'Vui lòng chọn chi nhánh';
+        break;
+      case 'MucGia':
+        if (!value) error = 'Vui lòng nhập mức giá mong muốn';
+        break;
+      case 'SoNguoiMuonThue':
+        if (!value) error = 'Vui lòng nhập số người';
+        break;
+      case 'HinhThucThue':
+        if (!value) error = 'Vui lòng chọn hình thức thuê';
+        break;
+      case 'ThoiHanThue':
+        if (!value) error = 'Vui lòng chọn thời hạn thuê';
+        break;
+      default:
+        break;
+    }
+    setErrors(prev => ({ ...prev, [name]: error }));
+    return error;
+  };
+
   const handleChange = (name, value) => {
     setFormData(prev => ({ ...prev, [name]: value }));
-    // clear error for the field
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: null }));
-    }
+    validateField(name, value);
   };
 
   const validate = () => {
+    const fields = [
+      'HoTen', 'SoDienThoai', 'CCCD', 'DiaChi', 'Email', 
+      'GioiTinh', 'NgaySinh', 'ChiNhanh', 'MucGia', 
+      'SoNguoiMuonThue', 'HinhThucThue', 'ThoiHanThue'
+    ];
+    let hasError = false;
     const newErrors = {};
-    if (!formData.HoTen) newErrors.HoTen = 'Vui lòng nhập họ tên';
-    if (!formData.SoDienThoai) newErrors.SoDienThoai = 'Vui lòng nhập số điện thoại';
-    if (!formData.CCCD) newErrors.CCCD = 'Vui lòng nhập số CCCD';
-    if (!formData.DiaChi) newErrors.DiaChi = 'Vui lòng nhập địa chỉ';
-    if (!formData.GioiTinh) newErrors.GioiTinh = 'Vui lòng chọn giới tính';
-    if (!formData.NgaySinh) newErrors.NgaySinh = 'Vui lòng chọn ngày sinh';
-    if (!formData.ChiNhanh) newErrors.ChiNhanh = 'Vui lòng chọn chi nhánh';
-    if (!formData.MucGia) newErrors.MucGia = 'Vui lòng nhập mức giá mong muốn';
-    if (!formData.SoNguoiMuonThue) newErrors.SoNguoiMuonThue = 'Vui lòng nhập số người';
-    if (!formData.HinhThucThue) newErrors.HinhThucThue = 'Vui lòng chọn hình thức thuê';
-    if (!formData.ThoiHanThue) newErrors.ThoiHanThue = 'Vui lòng chọn thời hạn thuê';
+
+    fields.forEach(field => {
+      const error = validateField(field, formData[field]);
+      if (error) {
+        newErrors[field] = error;
+        hasError = true;
+      }
+    });
     
     setErrors(newErrors);
     
-    if (Object.keys(newErrors).length > 0) {
+    if (hasError) {
       setModalLoi({ isOpen: true, message: 'Vui lòng điền đầy đủ và chính xác các thông tin bắt buộc trước khi lưu phiếu.' });
       return false;
     }

@@ -15,7 +15,7 @@ class phieuYeuCauService {
       if (khExist.success && khExist.data) {
         maKH = khExist.data.makh;
       } else {
-        maKH = `KH${Date.now().toString().slice(-6)}`; // Auto generate KH id
+        maKH = await khachHangService.sinhMa(); // Auto generate KH id
         const khachHangData = {
           makh: maKH,
           hoten: data.HoTen,
@@ -36,7 +36,7 @@ class phieuYeuCauService {
       }
 
       // 2. Tạo Phiếu yêu cầu
-      const maYC = `YC${Date.now().toString().slice(-6)}`;
+      const maYC = await phieuYeuCauDao.sinhMaPhieuYeuCau();
       // Map hình thức thuê của frontend (Cá nhân, Ở ghép, Thuê nguyên căn) 
       // sang check constraint của DB (Ở ghép, Nguyên phòng)
       const hinhThucDb = (data.HinhThucThue === 'Thuê nguyên căn') ? 'Nguyên phòng' : 'Ở ghép';
@@ -166,9 +166,9 @@ class phieuYeuCauService {
     }
   }
 
-  static async capNhatLichHen(mayc, thoigianhenxem) {
+  static async capNhatLichHen(mayc, thoigianhenxem, manv = 'NV01') {
     try {
-      return await phieuYeuCauDao.updateLichHen(mayc, thoigianhenxem);
+      return await phieuYeuCauDao.updateLichHen(mayc, thoigianhenxem, manv);
     } catch (error) {
       console.error('Lỗi phieuYeuCauService.capNhatLichHen:', error);
       return { success: false, error };

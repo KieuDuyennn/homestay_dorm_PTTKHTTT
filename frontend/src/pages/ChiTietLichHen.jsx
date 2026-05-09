@@ -64,11 +64,8 @@ const ChiTietLichHen = () => {
       console.log('[ChiTietLichHen] bắt đầu chốt phòng:', itemKey);
 
       const allItems = data.chi_tiet || [];
-      const isNguyenCanRoom = Boolean(item.isNguyenCanRoom);
       const selectedRoomKey = item.roomId || itemKey;
-      const selectedItems = isNguyenCanRoom
-        ? allItems.filter(it => (it.maphong || it.giuong?.phong?.maphong) === item.maphong)
-        : [{ maphong: item.maphong, magiuong: item.magiuong }];
+      const selectedItems = allItems.filter(it => getRoomKey(it) === selectedRoomKey);
 
       // 1. Update trangthaichot = 'Chốt' cho item / toàn bộ giường của phòng nguyên căn
       for (const selectedItem of selectedItems) {
@@ -85,12 +82,7 @@ const ChiTietLichHen = () => {
 
       // 2. Xóa các item không được chốt
       const itemsToDelete = allItems.filter(it => {
-        if (isNguyenCanRoom) {
-          const itemRoom = it.maphong || it.giuong?.phong?.maphong;
-          return itemRoom !== item.maphong;
-        }
-        const itKey = getRoomKey(it);
-        return itKey !== itemKey;
+        return getRoomKey(it) !== selectedRoomKey;
       });
 
       for (const deleteItem of itemsToDelete) {
@@ -350,7 +342,7 @@ const ChiTietLichHen = () => {
                         <div className="absolute top-4 right-4">
                           <button
                             onClick={() => handleDaChon(itemKey, { maphong: g.maphong, macn: g.macn, roomId: g.roomId, giuongs: g.giuongs, isNguyenCanRoom: true })}
-                            disabled={isUpdating || isCot}
+                            disabled={isUpdating || isCot || data.trangthai !== 'Đang hẹn xem'}
                             className={`inline-flex items-center gap-2 text-white text-[12px] font-semibold px-4 py-2 rounded-full transition-all ${
                               isCot
                                 ? 'bg-green-600 cursor-not-allowed'
@@ -395,7 +387,7 @@ const ChiTietLichHen = () => {
                         <div className="absolute top-4 right-4">
                           <button
                             onClick={() => handleDaChon(itemKey, { maphong: g.maphong, roomId: g.roomId, magiuong: g.giuongs[0] })}
-                            disabled={isUpdating || isCot}
+                            disabled={isUpdating || isCot || data.trangthai !== 'Đang hẹn xem'}
                             className={`inline-flex items-center gap-2 text-white text-[12px] font-semibold px-4 py-2 rounded-full transition-all ${
                               isCot
                                 ? 'bg-green-600 cursor-not-allowed'
@@ -445,7 +437,7 @@ const ChiTietLichHen = () => {
                         <div className="absolute top-4 right-4">
                           <button
                             onClick={() => handleDaChon(itemKey, { maphong, magiuong: item.magiuong })}
-                            disabled={isUpdating || isCot}
+                            disabled={isUpdating || isCot || data.trangthai !== 'Đang hẹn xem'}
                             className={`inline-flex items-center gap-2 text-white text-[12px] font-semibold px-4 py-2 rounded-full transition-all ${
                               isCot
                                 ? 'bg-green-600 cursor-not-allowed'
@@ -486,7 +478,7 @@ const ChiTietLichHen = () => {
                       <div className="absolute top-4 right-4">
                         <button
                           onClick={() => handleDaChon(itemKey, { maphong, magiuong: item.magiuong })}
-                          disabled={isUpdating || isCot}
+                          disabled={isUpdating || isCot || data.trangthai !== 'Đang hẹn xem'}
                           className={`inline-flex items-center gap-2 text-white text-[12px] font-semibold px-4 py-2 rounded-full transition-all ${
                             isCot
                               ? 'bg-green-600 cursor-not-allowed'
@@ -506,13 +498,28 @@ const ChiTietLichHen = () => {
 
         {/* Footer: Actions */}
         <div className="bg-gradient-to-r from-pink-50 to-pink-100 rounded-[24px] p-8 border border-pink-100 flex flex-wrap gap-3 justify-start">
-          <button
-            onClick={handleHoanThanhTuVan}
-            disabled={isUpdating || Object.keys(chotItems).length === 0}
-            className="bg-gradient-to-r from-pink-600 to-pink-500 text-white px-8 py-4 rounded-xl text-[16px] font-bold shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100"
-          >
-            {isUpdating ? 'Đang xử lý...' : 'Hoàn thành tư vấn'}
-          </button>
+          {data.trangthai === 'Đang hẹn xem' ? (
+            <button
+              onClick={handleHoanThanhTuVan}
+              disabled={isUpdating || Object.keys(chotItems).length === 0}
+              className="bg-gradient-to-r from-pink-600 to-pink-500 text-white px-8 py-4 rounded-xl text-[16px] font-bold shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100"
+            >
+              {isUpdating ? 'Đang xử lý...' : 'Hoàn thành tư vấn'}
+            </button>
+          ) : (
+            <div className="flex items-center gap-4">
+              <div className="bg-green-600 text-white px-8 py-4 rounded-xl text-[16px] font-bold shadow-xl flex items-center gap-2">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                Tư vấn đã hoàn thành
+              </div>
+              <button
+                onClick={() => navigate('/lich-hen')}
+                className="bg-white text-navy border border-pink-200 px-6 py-4 rounded-xl text-[16px] font-bold shadow-sm hover:bg-pink-50 transition-all"
+              >
+                Quay lại danh sách
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

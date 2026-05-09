@@ -64,13 +64,11 @@ router.get('/danh-sach', async (req, res, next) => {
 // PATCH /api/phieu-yeu-cau/cap-nhat-lich-hen - Cập nhật thoigianhenxem cho phiếu
 router.patch('/cap-nhat-lich-hen', async (req, res, next) => {
   try {
-    const { mayc, thoigianhenxem } = req.body;
-    console.log('=== PATCH /cap-nhat-lich-hen ===');
-    console.log('Payload nhận:', { mayc, thoigianhenxem });
+    const { mayc, thoigianhenxem, manv } = req.body;
     if (!mayc || !thoigianhenxem) {
       return res.status(400).json({ success: false, message: 'Thiếu mayc hoặc thoigianhenxem' });
     }
-    const result = await phieuYeuCauService.capNhatLichHen(mayc, thoigianhenxem);
+    const result = await phieuYeuCauService.capNhatLichHen(mayc, thoigianhenxem, manv);
     if (!result.success) return res.status(500).json(result);
     res.json(result);
   } catch (error) {

@@ -52,6 +52,9 @@ export default function KetQuaTimKiemPhong() {
     'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=600&auto=format&fit=crop',
   ];
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
+
   // Transform dữ liệu từ API thành format của RoomCard
   // Mỗi item bao gồm: UI display fields + original data fields để lưu vào sessionStorage
   const transformData = (apiData, loai) => {
@@ -139,6 +142,7 @@ export default function KetQuaTimKiemPhong() {
         if (json.success) {
           setLoaiKetQua(json.loai);
           setResults(transformData(json.data, json.loai));
+          setCurrentPage(1); // Reset to page 1 on new search
         } else {
           setResults([]);
         }
@@ -157,12 +161,32 @@ export default function KetQuaTimKiemPhong() {
     return hinhThucThue || 'Kết quả';
   };
 
+  // Logic phân trang
+  const totalPages = Math.ceil(results.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentResults = results.slice(indexOfFirstItem, indexOfLastItem);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <MainLayout>
       <div className="bg-[#f9fafb] flex flex-col items-start w-full min-h-[calc(100vh-60px)] pb-32">
         <div className="px-8 pt-8 w-full max-w-7xl mx-auto">
           {/* Header */}
           <div className="flex flex-col gap-2 mb-8">
+            <button 
+              onClick={() => navigate('/dang-ky-thue-phong')}
+              className="flex items-center gap-2 text-[#e60076] font-semibold text-[14px] hover:underline mb-2 w-fit"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
+              </svg>
+              Quay lại chỉnh sửa phiếu
+            </button>
             <h1 className="font-['Inter',sans-serif] font-bold text-[#1e2939] text-[36px] tracking-[0.37px]">
               Kết quả Tìm kiếm
             </h1>
@@ -187,11 +211,11 @@ export default function KetQuaTimKiemPhong() {
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
             </div>
-          ) : results.length > 0 ? (
+          ) : currentResults.length > 0 ? (
             <>
               {/* Grid Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full">
-                {results.map((room) => (
+                {currentResults.map((room) => (
                   <RoomCard
                     key={room.id}
                     room={room}
@@ -202,28 +226,43 @@ export default function KetQuaTimKiemPhong() {
               </div>
 
               {/* Pagination */}
-              <div className="flex items-center justify-center gap-3 mt-12 w-full">
-                <button className="w-10 h-10 rounded-[10px] bg-white flex items-center justify-center opacity-50 cursor-not-allowed border border-gray-100 shadow-sm">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6a7282" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="15 18 9 12 15 6"></polyline>
-                  </svg>
-                </button>
-                <button className="w-10 h-10 rounded-[10px] bg-gradient-to-r from-[#e60076] to-[#ec003f] flex items-center justify-center shadow-md">
-                  <span className="font-['Inter',sans-serif] font-medium text-white text-[16px]">1</span>
-                </button>
-                <button className="w-10 h-10 rounded-[10px] bg-white flex items-center justify-center border border-gray-100 shadow-sm hover:bg-gray-50 transition-colors">
-                  <span className="font-['Inter',sans-serif] font-medium text-[#4a5565] text-[16px]">2</span>
-                </button>
-                <span className="font-['Inter',sans-serif] font-normal text-[#6a7282] text-[16px] px-1">...</span>
-                <button className="w-10 h-10 rounded-[10px] bg-white flex items-center justify-center border border-gray-100 shadow-sm hover:bg-gray-50 transition-colors">
-                  <span className="font-['Inter',sans-serif] font-medium text-[#4a5565] text-[16px]">12</span>
-                </button>
-                <button className="w-10 h-10 rounded-[10px] bg-white flex items-center justify-center border border-gray-100 shadow-sm hover:bg-gray-50 transition-colors">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6a7282" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="9 18 15 12 9 6"></polyline>
-                  </svg>
-                </button>
-              </div>
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-3 mt-12 w-full">
+                  <button 
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className={`w-10 h-10 rounded-[10px] bg-white flex items-center justify-center border border-gray-100 shadow-sm transition-all ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6a7282" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                  </button>
+                  
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <button 
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      className={`w-10 h-10 rounded-[10px] flex items-center justify-center shadow-sm transition-all font-['Inter',sans-serif] font-medium text-[16px] ${
+                        currentPage === page 
+                          ? 'bg-gradient-to-r from-[#e60076] to-[#ec003f] text-white shadow-md' 
+                          : 'bg-white text-[#4a5565] border border-gray-100 hover:bg-gray-50'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+
+                  <button 
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className={`w-10 h-10 rounded-[10px] bg-white flex items-center justify-center border border-gray-100 shadow-sm transition-all ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6a7282" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                  </button>
+                </div>
+              )}
             </>
           ) : (
             <EmptyState onBack={() => navigate('/dang-ky-thue-phong')} />
