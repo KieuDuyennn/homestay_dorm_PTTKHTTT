@@ -1,4 +1,4 @@
-const dichVuDAO = require('../dao/dichVu.dao');
+const dichVuDAO = require('../dao/DichVu.dao');
 
 class DichVu_BUS {
   static async LayTheoMaCN(maCN) {

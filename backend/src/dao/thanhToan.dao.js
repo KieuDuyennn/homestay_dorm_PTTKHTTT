@@ -31,29 +31,29 @@ async function sinhMaThanhToan() {
       const match = id.match(/^TT(\d+)$/);
       return match ? parseInt(match[1]) : 0;
     });
-    
+
   const maxNum = Math.max(0, ...nums);
   const nextNumber = maxNum + 1;
-  
+
   // Return in TT001 format
   return `TT${nextNumber.toString().padStart(3, '0')}`;
 }
 
-async function layCocDaDoiSoat(maHD) {
-  const { data, error } = await supabase
-    .from('thanh_toan')
-    .select('sotien')
-    .eq('mahd', maHD)
-    .eq('loaitt', 'Tiền cọc')
-    .eq('trangthai', 'Đối soát thành công')
-    .single();
+// async function layCocDaDoiSoat(maHD) {
+//   const { data, error } = await supabase
+//     .from('thanh_toan')
+//     .select('sotien')
+//     .eq('mahd', maHD)
+//     .eq('loaitt', 'Tiền cọc')
+//     .eq('trangthai', 'Đối soát thành công')
+//     .single();
 
-  if (error && error.code !== 'PGRST116') throw error; // PGRST116 is no rows returned
-  return data ? data.sotien : 0;
-}
+//   if (error && error.code !== 'PGRST116') throw error; // PGRST116 is no rows returned
+//   return data ? data.sotien : 0;
+// }
 
 module.exports = {
   them,
   sinhMaThanhToan,
-  layCocDaDoiSoat
+  //  layCocDaDoiSoat
 };
