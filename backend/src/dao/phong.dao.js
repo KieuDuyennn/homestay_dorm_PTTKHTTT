@@ -1,12 +1,26 @@
 const supabase = require('../config/supabase');
 
+function extractBedOrder(magiuong) {
+  const match = String(magiuong || '').match(/\d+/);
+  return match ? parseInt(match[0], 10) : Number.MAX_SAFE_INTEGER;
+}
+
+function chunkBeds(items, size) {
+  const chunks = [];
+  for (let index = 0; index + size <= items.length; index += size) {
+    chunks.push(items.slice(index, index + size));
+  }
+  return chunks;
+}
+
 class phongDao {
   /**
    * Tìm phòng nguyên căn còn trống theo chi nhánh và giá
    * @param {string} macn - Mã chi nhánh (optional)
    * @param {number} mucGiaMax - Mức giá tối đa
    */
-  static async timPhongNguyenCan({ macn, mucGiaMax, gioiTinh }) {
+  static async timPhongNguyenCan({ macn, soNguoi, mucGiaMax, gioiTinh }) {
+    const soNguoiThue = parseInt(soNguoi) || 1;
     let query = supabase
       .from('phong')
       .select(`
@@ -17,7 +31,8 @@ class phongDao {
         tienthuethang,
         trangthai,
         macn,
-        chi_nhanh (tencn, diachi)
+        chi_nhanh (tencn, diachi),
+        giuong (magiuong, tinhtrang)
       `)
       // Thuê nguyên căn: phòng phải còn đủ 100% giường trống
       .eq('trangthai', 'Còn giường trống');
@@ -34,8 +49,19 @@ class phongDao {
     }
     
     // Lọc thêm: đảm bảo phòng còn trống hoàn toàn (SoGiuongTrong == SoLuongGiuong)
-    const filtered = (data || []).filter(p => p.sogiuongtrong === p.soluonggiuong);
-    
+    // đủ số người muốn thuê, và giá hiển thị là tổng theo toàn bộ số giường của phòng
+    const filtered = (data || [])
+      .filter(p => p.sogiuongtrong === p.soluonggiuong && (p.soluonggiuong || 0) >= soNguoiThue)
+      .map(p => {
+        const tongTienThue = (p.tienthuethang || 0) * (p.soluonggiuong || 1);
+        const dsGiuong = (p.giuong || []).filter(g => g.tinhtrang === 'Chưa sử dụng');
+        const thoaGia = !mucGiaMax || mucGiaMax <= 0 || tongTienThue <= mucGiaMax;
+        return thoaGia
+          ? { ...p, giaMoiGiuong: p.tienthuethang, tongTienThue, dsGiuong, dsMagiuong: dsGiuong.map(g => g.magiuong) }
+          : null;
+      })
+      .filter(Boolean);
+
     return { success: true, data: filtered };
   }
 
@@ -46,6 +72,7 @@ class phongDao {
    * @param {number} mucGiaMax - Mức giá tối đa (mỗi giường)
    */
   static async timPhongOGhep({ macn, soNguoi, mucGiaMax, gioiTinh }) {
+    const soNguoiThue = parseInt(soNguoi) || 1;
     let query = supabase
       .from('phong')
       .select(`
@@ -57,10 +84,10 @@ class phongDao {
         trangthai,
         macn,
         chi_nhanh (tencn, diachi),
-        giuong (magiuong, giagiuong, tinhtrang)
+        giuong (magiuong, tinhtrang)
       `)
       .eq('trangthai', 'Còn giường trống')
-      .gte('sogiuongtrong', soNguoi); // Dùng cột suy diễn để lọc nhanh
+      .gte('sogiuongtrong', soNguoiThue); // Dùng cột suy diễn để lọc nhanh
 
     if (macn) query = query.eq('macn', macn);
     if (gioiTinh) query = query.in('gioitinh', [gioiTinh, 'Hỗn hợp']);
@@ -72,54 +99,37 @@ class phongDao {
       return { success: false, error };
     }
 
-    // Lọc thêm giá (nếu mức giá tính theo giường trong phòng ở ghép)
-    const ketQua = (data || []).filter(phong => {
-      const thoaGia = !mucGiaMax || mucGiaMax <= 0 || phong.tienthuethang <= mucGiaMax;
-      return thoaGia;
-    });
+    // Lọc thêm: ở ghép phải đủ giường trống cho số người,
+    // nhưng mỗi phòng chỉ trả về 1 nhóm giường đại diện
+    const ketQua = (data || [])
+      .flatMap(phong => {
+        const giuongTrong = (phong.giuong || [])
+          .filter(g => g.tinhtrang === 'Chưa sử dụng')
+          .sort((a, b) => extractBedOrder(a.magiuong) - extractBedOrder(b.magiuong));
+        if (giuongTrong.length < soNguoiThue) {
+          return [];
+        }
 
-    return { success: true, data: ketQua };
-  }
+        const tongTienThue = (phong.tienthuethang || 0) * soNguoiThue;
+        const thoaGia = !mucGiaMax || mucGiaMax <= 0 || tongTienThue <= mucGiaMax;
+        if (!thoaGia) {
+          return [];
+        }
 
-  /**
-   * Tìm giường đơn còn trống (cho thuê cá nhân)
-   * @param {string} macn - Mã chi nhánh (optional)
-   * @param {number} mucGiaMax - Mức giá tối đa mỗi giường
-   */
-  static async timGiuongDon({ macn, mucGiaMax, gioiTinh }) {
-    let query = supabase
-      .from('giuong')
-      .select(`
-        magiuong,
-        giagiuong,
-        tinhtrang,
-        maphong,
-        phong (
-          maphong,
-          gioitinh,
-          loaihinh,
-          tienthuethang,
-          trangthai,
-          macn,
-          chi_nhanh (tencn, diachi)
-        )
-      `)
-      .eq('tinhtrang', 'Chưa sử dụng');
+        const group = chunkBeds(giuongTrong, soNguoiThue)[0];
+        if (!group) {
+          return [];
+        }
 
-    if (mucGiaMax && mucGiaMax > 0) query = query.lte('giagiuong', mucGiaMax);
-
-    const { data, error } = await query.order('giagiuong', { ascending: true });
-
-    if (error) {
-      console.error('Lỗi phongDao.timGiuongDon:', error);
-      return { success: false, error };
-    }
-
-    // Lọc theo chi nhánh và giới tính sau (vì Supabase khó filter nested)
-    let ketQua = data || [];
-    if (macn) ketQua = ketQua.filter(g => g.phong && g.phong.macn === macn);
-    // Lọc giới tính: lấy giường ở phòng đúng giới tính hoặc phòng Hỗn hợp
-    if (gioiTinh) ketQua = ketQua.filter(g => !g.phong || g.phong.gioitinh === gioiTinh || g.phong.gioitinh === 'Hỗn hợp');
+        return [{
+          ...phong,
+          giaMoiGiuong: phong.tienthuethang,
+          tongTienThue,
+          dsGiuong: group,
+          dsMagiuong: group.map(g => g.magiuong),
+          magiuong: group[0]?.magiuong || null,
+        }];
+      });
 
     return { success: true, data: ketQua };
   }

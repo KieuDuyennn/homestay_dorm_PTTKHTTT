@@ -40,11 +40,11 @@ class phieuYeuCauService {
       // Map hình thức thuê của frontend (Cá nhân, Ở ghép, Thuê nguyên căn) 
       // sang check constraint của DB (Ở ghép, Nguyên phòng)
       const hinhThucDb = (data.HinhThucThue === 'Thuê nguyên căn') ? 'Nguyên phòng' : 'Ở ghép';
+      const chiTietInput = Array.isArray(data.ChiTiet) ? data.ChiTiet : [];
 
       const phieuYeuCauData = {
         mayc: maYC,
         soluongdukien: parseInt(data.SoNguoiMuonThue) || 1,
-        loaiphong: hinhThucDb,
         mucgia: parseFloat(data.MucGia) || 0,
         thoigiandukienvao: data.NgayDuKienDonVao || null,
         thoihanthue: parseInt(data.ThoiHanThue) || 6,
@@ -67,17 +67,31 @@ class phieuYeuCauService {
         const insertedPYC = pycResult.data; // full inserted row
         const maycSaved = insertedPYC.mayc || maYC;
         console.log('=== BUS.taoPhieuYeuCau check ChiTiet ===');
-        console.log('data.ChiTiet:', data.ChiTiet);
-        console.log('Is array:', Array.isArray(data.ChiTiet));
-        console.log('Length:', data.ChiTiet?.length);
+        console.log('data.ChiTiet:', chiTietInput);
+        console.log('Is array:', Array.isArray(chiTietInput));
+        console.log('Length:', chiTietInput.length);
         
-        if (Array.isArray(data.ChiTiet) && data.ChiTiet.length > 0) {
+        if (chiTietInput.length > 0) {
           const supabase = require('../config/supabase');
           const records = [];
           console.log('Bắt đầu xử lý ChiTiet items...');
 
+          const roomItems = hinhThucDb === 'Nguyên phòng'
+            ? Object.values(
+                chiTietInput.reduce((acc, item) => {
+                  if (item?.maphong) {
+                    acc[item.maphong] = {
+                      maphong: item.maphong,
+                      macn: item.macn || null,
+                    };
+                  }
+                  return acc;
+                }, {})
+              )
+            : chiTietInput;
+
           // Process each room/bed selection
-          for (const item of data.ChiTiet) {
+          for (const item of roomItems) {
             const maphong = item.maphong || null;
             const macn = item.macn || null;
             const magiuong = item.magiuong || null;
@@ -129,7 +143,7 @@ class phieuYeuCauService {
             console.log('chiTietPhieuYeuCauDao.insertChiTietMany result:', ctResult);
             if (!ctResult.success) {
               console.error('Không thể lưu chi tiết phiếu yêu cầu:', ctResult.error);
-              return { success: true, message: 'Tạo phiếu yêu cầu thành công (chi tiết chưa lưu)', data: { MaYC: maycSaved, MaKH: maKH }, warning: ctResult.error };
+              return { success: true, message: 'Tạo phiếu yêu cầu thành công (chi tiết chưa lưu)', data: { MaYC: maycSaved, MaKH: maKH, ChiTietCount: 0 }, warning: ctResult.error };
             }
           } else {
             console.log('Không có records cần insert');
@@ -143,7 +157,7 @@ class phieuYeuCauService {
       return { 
         success: true, 
         message: 'Tạo phiếu yêu cầu thành công',
-        data: { MaYC: maYC, MaKH: maKH }
+        data: { MaYC: maYC, MaKH: maKH, ChiTietCount: chiTietInput.length }
       };
 
     } catch (error) {
@@ -284,7 +298,6 @@ class phieuYeuCauService {
           magiuong: ct.magiuong,
           maphong: ct.maphong,
           trangthaichot: ct.trangthaichot,
-          giagiuong: ct.giuong?.giagiuong,
           tinhTrangThucTe: result.success ? result.data.tinhtrang : null,
           // Thông tin phòng từ join
           phong: ct.giuong?.phong || null,
@@ -311,7 +324,8 @@ class phieuYeuCauService {
         ngayVaoO: phieuData.thoigiandukienvao,
         thoiHanThue: phieuData.thoihanthue,
         loaiHinhThue: phieuData.loaihinhthue,
-        loaiPhong: phieuData.loaiphong,
+        loaiPhong: phieuData.loaihinhthue,
+        loaiphong: phieuData.loaihinhthue,
         soLuongDuKien: phieuData.soluongdukien,
         lyDoHuy: phieuData.lydohuy,
         maNV: phieuData.manv,
@@ -329,7 +343,6 @@ class phieuYeuCauService {
         phong: phongDauTien ? {
           maPhong: phongDauTien.maphong,
           maChiNhanh: phongDauTien.macn,
-          loaiPhong: phongDauTien.loaihinh,
           tienThueThang: phongDauTien.tienthuethang,
           gioiTinh: phongDauTien.gioitinh,
           trangThai: trangThaiPhongMap[phongDauTien.maphong] || phongDauTien.trangthai,
@@ -337,7 +350,6 @@ class phieuYeuCauService {
         dsGiuong: dsGiuongVoiTinhTrang.map(g => ({
           maGiuong: g.magiuong,
           maPhong: g.maphong,
-          giaGiuong: g.giagiuong,
           tinhTrang: g.tinhTrangThucTe,
           trangthaichot: g.trangthaichot,
         })),

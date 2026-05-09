@@ -105,11 +105,19 @@ export default function DatLichHen() {
         }
         
         const formData = JSON.parse(formDataStr);
-        const chiTiet = selectedRooms.map(r => ({
-          maphong: r.maphong || null,
-          macn: r.macn || null,
-          magiuong: r.magiuong || null,
-        }));
+        const chiTiet = selectedRooms.flatMap(r => {
+          const dsMagiuong = Array.isArray(r.dsMagiuong) && r.dsMagiuong.length > 0
+            ? r.dsMagiuong
+            : (Array.isArray(r.dsGiuong) && r.dsGiuong.length > 0
+              ? r.dsGiuong.map(g => g.magiuong).filter(Boolean)
+              : [r.magiuong].filter(Boolean));
+
+          return dsMagiuong.map(magiuong => ({
+            maphong: r.maphong || null,
+            macn: r.macn || null,
+            magiuong,
+          }));
+        });
 
         console.log('=== Tạo phiếu từ DatLichHen ===');
         console.log('FormData:', formData);

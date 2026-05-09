@@ -30,6 +30,18 @@ const ChiTietLichHen = () => {
       if (response.data.success) {
         console.log('Chi tiết phiếu:', response.data.data);
         setData(response.data.data);
+
+        const nextChotItems = {};
+        const chiTietRows = response.data.data?.chi_tiet || [];
+        chiTietRows.forEach(it => {
+          if (it.trangthaichot === 'Chốt') {
+            const roomKey = getRoomKey(it);
+            if (roomKey) {
+              nextChotItems[roomKey] = true;
+            }
+          }
+        });
+        setChotItems(nextChotItems);
       }
     } catch (error) {
       console.error('Lỗi khi tải chi tiết:', error);
@@ -50,21 +62,34 @@ const ChiTietLichHen = () => {
     setIsUpdating(true);
     try {
       console.log('[ChiTietLichHen] bắt đầu chốt phòng:', itemKey);
-      
-      // 1. Update trangthaichot = 'Chốt' cho item này
-      await axios.patch(
-        `http://localhost:3001/api/phieu-yeu-cau/update-trang-thai-chot`,
-        {
-          mayc: id,
-          maphong: item.maphong,
-          magiuong: item.magiuong,
-          trangthaichot: 'Chốt'
-        }
-      );
 
-      // 2. Xóa tất cả các item khác (những cái không chốt)
-      const itemsToDelete = (data.chi_tiet || []).filter(it => {
-        const itKey = `${it.maphong}|${it.magiuong}`;
+      const allItems = data.chi_tiet || [];
+      const isNguyenCanRoom = Boolean(item.isNguyenCanRoom);
+      const selectedRoomKey = isNguyenCanRoom ? item.maphong : itemKey;
+      const selectedItems = isNguyenCanRoom
+        ? allItems.filter(it => (it.maphong || it.giuong?.phong?.maphong) === item.maphong)
+        : [{ maphong: item.maphong, magiuong: item.magiuong }];
+
+      // 1. Update trangthaichot = 'Chốt' cho item / toàn bộ giường của phòng nguyên căn
+      for (const selectedItem of selectedItems) {
+        await axios.patch(
+          `http://localhost:3001/api/phieu-yeu-cau/update-trang-thai-chot`,
+          {
+            mayc: id,
+            maphong: selectedItem.maphong,
+            magiuong: selectedItem.magiuong,
+            trangthaichot: 'Chốt'
+          }
+        );
+      }
+
+      // 2. Xóa các item không được chốt
+      const itemsToDelete = allItems.filter(it => {
+        if (isNguyenCanRoom) {
+          const itemRoom = it.maphong || it.giuong?.phong?.maphong;
+          return itemRoom !== item.maphong;
+        }
+        const itKey = getRoomKey(it);
         return itKey !== itemKey;
       });
 
@@ -75,12 +100,11 @@ const ChiTietLichHen = () => {
       }
 
       // 3. Update state UI - mark này là chốt
-      setChotItems({ [itemKey]: true });
+      setChotItems({ [selectedRoomKey]: true });
 
       // 4. Reload chi tiết
       await fetchChiTiet();
       console.log('[ChiTietLichHen] chốt phòng thành công!');
-      alert('Đã chốt phòng này! Chỉ còn phòng được chốt.');
       setChotModal({ open: false, item: null, itemKey: null });
     } catch (error) {
       console.error('Lỗi khi chốt phòng:', error);
@@ -152,6 +176,19 @@ const ChiTietLichHen = () => {
   const isOgep = (loai) => {
     if (!loai) return false;
     return loai.toLowerCase().includes('ở ghép') || loai.toLowerCase().includes('oghep');
+  };
+
+  const isNguyenCan = (loai) => {
+    if (!loai) return false;
+    const value = loai.toLowerCase();
+    return value.includes('nguyên') || value.includes('nguyen');
+  };
+
+  const getRoomKey = (item) => {
+    const phong = item.giuong?.phong || {};
+    const maphong = item.maphong || phong.maphong || '';
+    const macn = item.macn || phong.macn || '';
+    return `${maphong}|${macn}`;
   };
 
   const groupByRoom = (items) => {
@@ -250,7 +287,7 @@ const ChiTietLichHen = () => {
             <div className="md:col-span-2 border-t border-gray-50 pt-4 mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1">
                 <span className="text-[12px] font-medium text-gray-400 block">Hình thức thuê</span>
-                <p className="text-[14px] font-medium text-navy">{data.loaihinhthue} - {data.loaiphong}</p>
+                <p className="text-[14px] font-medium text-navy">{data.loaihinhthue || data.loaiphong}</p>
               </div>
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-gray-400">
@@ -281,11 +318,56 @@ const ChiTietLichHen = () => {
               </div>
             ) : (
               (() => {
-                const loai = data.loaihinhthue || data.loaihinhthue || '';
+                const loai = data.loaihinhthue || data.loaiphong || '';
+                if (isNguyenCan(loai)) {
+                  const groups = groupByRoom(dsPhong);
+                  return groups.map((g, idx) => {
+                    const itemKey = g.roomId || `${g.maphong}|${g.giuongs[0] || 'null'}`;
+                    const isCot = chotItems[itemKey];
+                    return (
+                      <div key={idx} className="relative bg-pink-50/30 border border-pink-100 rounded-2xl p-6 hover:shadow-lg transition-shadow">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 items-center">
+                          <div className="space-y-1">
+                            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Mã chi nhánh</span>
+                            <p className="text-[14px] font-bold text-navy">{g.macn || 'CN01'}</p>
+                          </div>
+                          <div className="space-y-1">
+                            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Mã phòng</span>
+                            <p className="text-[14px] font-bold text-navy">{g.maphong || 'N/A'}</p>
+                          </div>
+                          <div className="md:col-span-2">
+                            <div className="space-y-1">
+                              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Mã giường (toàn bộ giường)</span>
+                              <div className="flex flex-wrap gap-2 mt-2">
+                                {g.giuongs.length ? g.giuongs.map((mg, i) => (
+                                  <span key={i} className="text-[13px] bg-white border px-3 py-1 rounded-md text-navy font-medium">{mg}</span>
+                                )) : (<span className="text-[13px] text-gray-400">Chưa có giường cụ thể</span>)}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="absolute top-4 right-4">
+                          <button
+                            onClick={() => handleDaChon(itemKey, { maphong: g.maphong, macn: g.macn, giuongs: g.giuongs, isNguyenCanRoom: true })}
+                            disabled={isUpdating || isCot}
+                            className={`inline-flex items-center gap-2 text-white text-[12px] font-semibold px-4 py-2 rounded-full transition-all ${
+                              isCot
+                                ? 'bg-green-600 cursor-not-allowed'
+                                : 'bg-pink-600 hover:bg-pink-700 active:scale-95'
+                            } disabled:opacity-60`}
+                          >
+                            {isCot ? '✓ Đã chốt' : 'Chốt'}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  });
+                }
+
                 if (isOgep(loai)) {
                   const groups = groupByRoom(dsPhong);
                   return groups.map((g, idx) => {
-                    const itemKey = `${g.maphong}|${g.giuongs[0] || 'null'}`;
+                    const itemKey = g.roomId || `${g.maphong}|${g.giuongs[0] || 'null'}`;
                     const isCot = chotItems[itemKey];
                     return (
                       <div key={idx} className="relative bg-pink-50/30 border border-pink-100 rounded-2xl p-6 hover:shadow-lg transition-shadow">

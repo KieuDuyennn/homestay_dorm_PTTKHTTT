@@ -21,20 +21,9 @@ class timKiemPhongService {
       macn = cnMap[chiNhanh] || null;
     }
 
-    // Cá nhân: tìm giường đơn trống
-    if (hinhThucThue === 'Cá nhân') {
-      const result = await phongDao.timGiuongDon({ macn, mucGiaMax, gioiTinh });
-      return {
-        success: result.success,
-        loai: 'ca-nhan',
-        data: result.data || [],
-        error: result.error
-      };
-    }
-
     // Thuê nguyên căn: tìm phòng nguyên căn trống
     if (hinhThucThue === 'Thuê nguyên căn') {
-      const result = await phongDao.timPhongNguyenCan({ macn, mucGiaMax, gioiTinh });
+      const result = await phongDao.timPhongNguyenCan({ macn, soNguoi: soNguoiThue, mucGiaMax, gioiTinh });
       return {
         success: result.success,
         loai: 'nguyen-can',

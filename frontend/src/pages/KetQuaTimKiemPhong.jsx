@@ -65,7 +65,7 @@ export default function KetQuaTimKiemPhong() {
         location: g.phong?.chi_nhanh?.tencn || g.phong?.macn || '',
         rating: (4.3 + (i % 7) * 0.1).toFixed(1),
         peopleCount: `1 giường • ${g.phong?.gioitinh || 'Hỗn hợp'}`,
-        price: (g.giagiuong || 0).toLocaleString('vi-VN'),
+        price: (g.phong?.tienthuethang || 0).toLocaleString('vi-VN'),
         image: ROOM_IMAGES[i % ROOM_IMAGES.length],
         // Original data for ChiTiet storage
         maphong: g.maphong,
@@ -84,35 +84,39 @@ export default function KetQuaTimKiemPhong() {
         location: p.chi_nhanh?.tencn || p.macn || '',
         rating: (4.3 + (i % 7) * 0.1).toFixed(1),
         peopleCount: `${p.soluonggiuong || 1} giường • ${p.gioitinh || 'Hỗn hợp'}`,
-        price: (p.tienthuethang || 0).toLocaleString('vi-VN'),
+        price: (p.tongTienThue || p.tienthuethang || 0).toLocaleString('vi-VN'),
         image: ROOM_IMAGES[i % ROOM_IMAGES.length],
         // Original data for ChiTiet storage
         maphong: p.maphong,
         macn: p.macn || '',
-        // Cho nguyên căn, không có magiuong (null)
+        // Nguyên căn: lưu toàn bộ giường của phòng để DatLichHen bung ra chi_tiet
         magiuong: null,
+        dsGiuong: p.dsGiuong || [],
+        dsMagiuong: p.dsMagiuong || (p.dsGiuong || []).map(g => g.magiuong).filter(Boolean),
       }));
     }
 
     if (loai === 'o-ghep') {
-      // apiData là mảng phòng ở ghép có giường trống
+      // apiData là mảng tổ hợp giường trong phòng ở ghép
       return apiData.map((p, i) => {
-        const giuongTrong = (p.giuong || []).filter(g => g.tinhtrang === 'Chưa sử dụng');
+        const dsGiuong = p.dsGiuong || [];
+        const dsMagiuong = p.dsMagiuong || dsGiuong.map(g => g.magiuong).filter(Boolean);
         return {
           // UI display fields
-          id: p.maphong,
-          badge: `CÒN TRỐNG ${giuongTrong.length} CHỖ`,
+          id: `${p.maphong}-${dsMagiuong.join('-')}`,
+          badge: `CÒN TRỐNG ${dsMagiuong.length} CHỖ`,
           title: `Phòng ${p.maphong}`,
           location: p.chi_nhanh?.tencn || p.macn || '',
           rating: (4.3 + (i % 7) * 0.1).toFixed(1),
-          peopleCount: `Giường trống: ${giuongTrong.map(g => g.magiuong).join(', ')}`,
-          price: (p.tienthuethang || 0).toLocaleString('vi-VN'),
+          peopleCount: `Giường: ${dsMagiuong.join(', ')}`,
+          price: (p.tongTienThue || p.tienthuethang || 0).toLocaleString('vi-VN'),
           image: ROOM_IMAGES[i % ROOM_IMAGES.length],
           // Original data for ChiTiet storage
           maphong: p.maphong,
           macn: p.macn || '',
-          // Cho ở ghép, có thể có nhiều giường - chọn cái đầu tiên (hoặc toàn bộ)
-          magiuong: giuongTrong.length > 0 ? giuongTrong[0].magiuong : null,
+          magiuong: dsMagiuong[0] || null,
+          dsMagiuong,
+          dsGiuong,
         };
       });
     }
