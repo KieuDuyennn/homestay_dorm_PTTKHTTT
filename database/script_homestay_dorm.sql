@@ -315,6 +315,7 @@ CREATE TABLE BIEN_BAN_TRA_PHONG (
 CREATE TABLE LICH_TRA_PHONG (
     MaLichTraPhong  VARCHAR(10)     PRIMARY KEY,
     Ngay            DATE            NOT NULL,
+    Gio             TIME,           -- Giờ:phút
     TrangThai       VARCHAR(30)     NOT NULL CHECK (TrangThai IN ('Chưa xác nhận', 'Đã xác nhận')),
     MaHD            VARCHAR(10)     NOT NULL REFERENCES HOP_DONG(MaHD),
     MaNV            VARCHAR(10)     NOT NULL REFERENCES NHAN_VIEN(MaNV)
@@ -673,10 +674,10 @@ INSERT INTO BIEN_BAN_VI_PHAM (MaBienBanVP, Loi, NgayLap, TrangThai, PhiPhat, MaH
 -- ============================================================
 -- LỊCH TRẢ PHÒNG
 -- ============================================================
-INSERT INTO LICH_TRA_PHONG (MaLichTraPhong, Ngay, TrangThai, MaHD, MaNV) VALUES
-('LTP01', '2025-06-01', 'Đã xác nhận',   'HD05', 'NV01'),
-('LTP02', '2024-11-30', 'Đã xác nhận',   'HD07', 'NV06'),
-('LTP03', '2025-02-01', 'Đã xác nhận',   'HD08', 'NV01');
+INSERT INTO LICH_TRA_PHONG (MaLichTraPhong, Ngay, Gio, TrangThai, MaHD, MaNV) VALUES
+('LTP01', '2025-06-01', '09:00', 'Đã xác nhận',   'HD05', 'NV01'),
+('LTP02', '2024-11-30', '14:30', 'Đã xác nhận',   'HD07', 'NV06'),
+('LTP03', '2025-02-01', '10:00', 'Đã xác nhận',   'HD08', 'NV01');
 
 -- ============================================================
 -- TÀI SẢN VÀ TRANG THIẾT BỊ
