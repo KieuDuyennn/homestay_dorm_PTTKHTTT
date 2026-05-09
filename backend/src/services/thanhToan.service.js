@@ -2,14 +2,21 @@ const thanhToanDAO = require('../dao/thanhToan.dao');
 const hopDongBUS = require('./hopDong.service');
 const dichVuBUS = require('./dichVu.service');
 
+function tinhTongGiaGiuong(hopDong) {
+ 
+  const tienThueThang = Number(hopDong?.giathue) || 0;
+
+  return tienThueThang;
+}
+
 class ThanhToan_BUS {
   static async LayThongTinThanhToanKyDau(maHD) {
     // 1. Lấy thông tin hợp đồng qua BUS
     const hopDong = await hopDongBUS.LayTheoMa(maHD);
     if (!hopDong) throw new Error('Không tìm thấy hợp đồng');
 
-    // 2. Lấy tiền cọc đã đối soát
-    const tienCoc = await thanhToanDAO.layCocDaDoiSoat(maHD);
+    // 2. Tính tổng giá giường = tiền thuê hợp đồng
+    const tongGiaGiuong = tinhTongGiaGiuong(hopDong);
 
     // 3. Lấy thông tin chi nhánh để lấy dịch vụ
     // Giả sử lấy MaCN từ phòng đầu tiên trong hợp đồng
@@ -21,7 +28,7 @@ class ThanhToan_BUS {
 
     return {
       hopDong,
-      tienCoc,
+      tongGiaGiuong,
       dichVu
     };
   }
@@ -39,7 +46,7 @@ class ThanhToan_BUS {
     }
 
     // 2. Tính toán tổng tiền
-    const tienCoc = await thanhToanDAO.layCocDaDoiSoat(maHD);
+    const tongGiaGiuong = tinhTongGiaGiuong(hopDong);
     const maCN = hopDong.hop_dong_giuong?.[0]?.giuong?.phong?.macn;
     let tongDichVu = 0;
     if (maCN) {
@@ -47,7 +54,7 @@ class ThanhToan_BUS {
       tongDichVu = dichVu.reduce((sum, dv) => sum + Number(dv.gia), 0);
     }
 
-    const tongTien = Number(tienCoc) + tongDichVu;
+    const tongTien = tongGiaGiuong + tongDichVu;
 
     // 3. Tạo đối tượng thanh toán với mã đã truyền vào
     const newTT = {
