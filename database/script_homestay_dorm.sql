@@ -50,7 +50,7 @@ CREATE TABLE CHI_NHANH (
 CREATE TABLE PHONG (
     MaPhong         VARCHAR(10)     PRIMARY KEY,
     SoLuongGiuong   INT             NOT NULL CHECK (SoLuongGiuong > 0),
-    GioiTinh        VARCHAR(10)     NOT NULL CHECK (GioiTinh IN ('Nam', 'Nữ', 'Hỗn hợp')),
+    GioiTinh        VARCHAR(10)     NOT NULL CHECK (GioiTinh IN ('Nam', 'Nữ')),
 <<<<<<< HEAD
     --- LoaiHinh        VARCHAR(50)     NOT NULL CHECK (LoaiHinh IN ('Ở ghép', 'Nguyên phòng')),
 =======
@@ -153,7 +153,7 @@ CREATE TABLE TAI_KHOAN (
 CREATE TABLE NHOM_KHACH_THUE (
     MaNhom          VARCHAR(10)     PRIMARY KEY,
     SoLuong         INT             NOT NULL CHECK (SoLuong > 0),
-    GioiTinh        VARCHAR(10)     NOT NULL CHECK (GioiTinh IN ('Nam', 'Nữ', 'Hỗn hợp')),
+    GioiTinh        VARCHAR(10)     NOT NULL CHECK (GioiTinh IN ('Nam', 'Nữ')),
     HinhThucThue    VARCHAR(30)     NOT NULL CHECK (HinhThucThue IN ('Thuê nguyên phòng', 'Ở ghép')),
     TrangThai       VARCHAR(20)     NOT NULL CHECK (TrangThai IN ('Mới', 'Chờ kiểm tra', 'Hợp lệ', 'Không hợp lệ')),
     MaKHDaiDien     VARCHAR(10)     -- FK tới KHACH_HANG, thêm sau khi tạo bảng KH
@@ -199,7 +199,7 @@ CREATE TABLE PHIEU_YEU_CAU_XEM_PHONG (
     ThoiHanThue         INT             CHECK (ThoiHanThue > 0),   -- số tháng
     ThoiGianHenXem      TIMESTAMP,
     YeuCauKhac          TEXT,
-    GioiTinh            VARCHAR(10)     CHECK (GioiTinh IN ('Nam', 'Nữ', 'Hỗn hợp')),
+    GioiTinh            VARCHAR(10)     CHECK (GioiTinh IN ('Nam', 'Nữ')),
     NgayGuiYeuCau       TIMESTAMP       NOT NULL DEFAULT NOW(),
     TrangThai           VARCHAR(30)     NOT NULL CHECK (TrangThai IN ('Đang hẹn xem', 'Cần xác nhận', 'Hủy thuê', 'Hoàn tất')),
     LyDoHuy             TEXT,
@@ -446,46 +446,46 @@ INSERT INTO CHI_NHANH (MaCN, TenCN, DiaChi, SoLuongPhong, NoiQuy, QuyDinhCoc) VA
 INSERT INTO PHONG (MaPhong, SoLuongGiuong, GioiTinh, TienThueThang, TrangThai, SoGiuongTrong, MaCN) VALUES
 ('P001', 4, 'Nam',     1200000, 'Hết giường',       0, 'CN01'),
 ('P002', 4, 'Nữ',      1200000, 'Còn giường trống', 4, 'CN01'),
-('P003', 1, 'Hỗn hợp', 4500000, 'Hết giường',       0, 'CN01'),
+('P003', 1, 'Nữ', 4500000, 'Hết giường',       0, 'CN01'),
 ('P004', 2, 'Nam',     1000000, 'Còn giường trống', 2, 'CN02'),
 ('P005', 4, 'Nữ',      1100000, 'Hết giường',       0, 'CN02'),
-('P006', 1, 'Hỗn hợp', 5000000, 'Còn giường trống', 1, 'CN02'),
+('P006', 1, 'Nữ', 5000000, 'Còn giường trống', 1, 'CN02'),
 ('P007', 2, 'Nữ',      1300000, 'Hết giường',       0, 'CN03'),
-('P008', 1, 'Hỗn hợp', 3800000, 'Còn giường trống', 1, 'CN03'),
+('P008', 1, 'Nữ', 3800000, 'Còn giường trống', 1, 'CN03'),
 ('P009', 4, 'Nam',     1050000, 'Còn giường trống', 4, 'CN03'),
-('P010', 1, 'Hỗn hợp', 6500000, 'Hết giường',       0, 'CN04'),
+('P010', 1, 'Nữ', 6500000, 'Hết giường',       0, 'CN04'),
 ('P011', 2, 'Nữ',      1500000, 'Đang giữ chỗ',     2, 'CN01');
 
 -- ============================================================
 -- GIƯỜNG
 -- ============================================================
-INSERT INTO GIUONG (MaGiuong, MaPhong, GiaGiuong, TinhTrang) VALUES
-('G01', 'P001', 1200000, 'Đang sử dụng'),
-('G02', 'P001', 1200000, 'Đang sử dụng'),
-('G03', 'P001', 1200000, 'Đang sử dụng'),
-('G04', 'P001', 1200000, 'Đang sử dụng'),
-('G01', 'P002', 1200000, 'Chưa sử dụng'),
-('G02', 'P002', 1200000, 'Chưa sử dụng'),
-('G03', 'P002', 1200000, 'Chưa sử dụng'),
-('G04', 'P002', 1200000, 'Chưa sử dụng'),
-('G01', 'P003', 4500000, 'Đang sử dụng'),
-('G01', 'P004', 1000000, 'Chưa sử dụng'),
-('G02', 'P004', 1000000, 'Chưa sử dụng'),
-('G01', 'P005', 1100000, 'Đang sử dụng'),
-('G02', 'P005', 1100000, 'Đang sử dụng'),
-('G03', 'P005', 1100000, 'Đang sử dụng'),
-('G04', 'P005', 1100000, 'Đang sử dụng'),
-('G01', 'P006', 5000000, 'Chưa sử dụng'),
-('G01', 'P007', 1300000, 'Đang sử dụng'),
-('G02', 'P007', 1300000, 'Đang sử dụng'),
-('G01', 'P008', 3800000, 'Chưa sử dụng'),
-('G01', 'P009', 1050000, 'Chưa sử dụng'),
-('G02', 'P009', 1050000, 'Chưa sử dụng'),
-('G03', 'P009', 1050000, 'Chưa sử dụng'),
-('G04', 'P009', 1050000, 'Chưa sử dụng'),
-('G01', 'P010', 6500000, 'Đang sử dụng'),
-('G01', 'P011', 1500000, 'Đang giữ chỗ'),
-('G02', 'P011', 1500000, 'Đang giữ chỗ');
+INSERT INTO GIUONG (MaGiuong, MaPhong, TinhTrang) VALUES
+('G01', 'P001', 'Đang sử dụng'),
+('G02', 'P001', 'Đang sử dụng'),
+('G03', 'P001', 'Đang sử dụng'),
+('G04', 'P001', 'Đang sử dụng'),
+('G01', 'P002', 'Chưa sử dụng'),
+('G02', 'P002', 'Chưa sử dụng'),
+('G03', 'P002', 'Chưa sử dụng'),
+('G04', 'P002', 'Chưa sử dụng'),
+('G01', 'P003', 'Đang sử dụng'),
+('G01', 'P004', 'Chưa sử dụng'),
+('G02', 'P004', 'Chưa sử dụng'),
+('G01', 'P005', 'Đang sử dụng'),
+('G02', 'P005', 'Đang sử dụng'),
+('G03', 'P005', 'Đang sử dụng'),
+('G04', 'P005', 'Đang sử dụng'),
+('G01', 'P006', 'Chưa sử dụng'),
+('G01', 'P007', 'Đang sử dụng'),
+('G02', 'P007', 'Đang sử dụng'),
+('G01', 'P008', 'Chưa sử dụng'),
+('G01', 'P009', 'Chưa sử dụng'),
+('G02', 'P009', 'Chưa sử dụng'),
+('G03', 'P009', 'Chưa sử dụng'),
+('G04', 'P009', 'Chưa sử dụng'),
+('G01', 'P010', 'Đang sử dụng'),
+('G01', 'P011', 'Đang giữ chỗ'),
+('G02', 'P011', 'Đang giữ chỗ');
 
 -- ============================================================
 -- DỊCH VỤ
@@ -541,9 +541,9 @@ INSERT INTO TAI_KHOAN (MaDangNhap, MatKhau, MaNV) VALUES
 INSERT INTO NHOM_KHACH_THUE (MaNhom, SoLuong, GioiTinh, HinhThucThue, TrangThai, MaKHDaiDien) VALUES
 ('NH01', 4, 'Nam',     'Ở ghép',        'Hợp lệ',      NULL),
 ('NH02', 3, 'Nữ',      'Ở ghép',        'Hợp lệ',      NULL),
-('NH03', 2, 'Hỗn hợp', 'Thuê nguyên phòng', 'Hợp lệ',  NULL),
+('NH03', 2, 'Nữ', 'Thuê nguyên phòng', 'Hợp lệ',  NULL),
 ('NH04', 4, 'Nữ',      'Ở ghép',        'Hợp lệ',      NULL),
-('NH05', 1, 'Hỗn hợp', 'Thuê nguyên phòng', 'Chờ kiểm tra', NULL);
+('NH05', 1, 'Nữ', 'Thuê nguyên phòng', 'Chờ kiểm tra', NULL);
 
 -- ============================================================
 -- KHÁCH HÀNG
@@ -578,16 +578,16 @@ UPDATE NHOM_KHACH_THUE SET MaKHDaiDien = 'KH08' WHERE MaNhom = 'NH05';
 -- PHIẾU YÊU CẦU XEM PHÒNG
 -- ============================================================
 INSERT INTO PHIEU_YEU_CAU_XEM_PHONG
-    (MaYC, SoLuongDuKien, LoaiPhong, MucGia, ThoiGianDuKienVao, ThoiHanThue,
+    (MaYC, SoLuongDuKien, MucGia, ThoiGianDuKienVao, ThoiHanThue,
      ThoiGianHenXem, GioiTinh, NgayGuiYeuCau, TrangThai, LoaiHinhThue, MaNV, MaKH) VALUES
-('YC01', 4, 'Ở ghép',       1200000, '2025-01-01', 6,  '2024-12-20 10:00', 'Nam',     '2024-12-15 08:00', 'Hoàn tất', 'Ở ghép',        'NV02', 'KH01'),
-('YC02', 3, 'Ở ghép',       1200000, '2025-01-05', 6,  '2024-12-22 14:00', 'Nữ',      '2024-12-16 09:00', 'Hoàn tất', 'Ở ghép',        'NV04', 'KH02'),
-('YC03', 1, 'Nguyên phòng', 4500000, '2025-01-10', 12, '2024-12-25 09:30', 'Hỗn hợp', '2024-12-18 10:00', 'Hoàn tất', 'Nguyên phòng',  'NV02', 'KH03'),
-('YC04', 4, 'Ở ghép',       1100000, '2025-02-01', 6,  '2025-01-15 11:00', 'Nữ',      '2025-01-10 07:00', 'Hoàn tất', 'Ở ghép',        'NV04', 'KH04'),
-('YC05', 2, 'Ở ghép',       1300000, '2025-03-01', 3,  '2025-02-20 15:00', 'Nữ',      '2025-02-15 08:30', 'Hoàn tất', 'Ở ghép',        'NV08', 'KH06'),
-('YC06', 1, 'Nguyên phòng', 6500000, '2025-03-15', 12, '2025-03-05 10:00', 'Hỗn hợp', '2025-03-01 09:00', 'Hoàn tất', 'Nguyên phòng',  'NV02', 'KH05'),
-('YC07', 1, 'Ở ghép',       1200000, '2025-04-01', 6,  '2025-03-25 09:00', 'Nữ',      '2025-03-20 10:00', 'Cần xác nhận', 'Ở ghép',    'NV04', 'KH14'),
-('YC08', 1, 'Nguyên phòng', 5000000, '2025-05-01', 6,  '2025-04-20 14:00', 'Hỗn hợp', '2025-04-15 11:00', 'Cần xác nhận', 'Nguyên phòng','NV08','KH08');
+('YC01', 4,        1200000, '2025-01-01', 6,  '2024-12-20 10:00', 'Nam',     '2024-12-15 08:00', 'Hoàn tất', 'Ở ghép',        'NV02', 'KH01'),
+('YC02', 3,        1200000, '2025-01-05', 6,  '2024-12-22 14:00', 'Nữ',      '2024-12-16 09:00', 'Hoàn tất', 'Ở ghép',        'NV04', 'KH02'),
+('YC03', 1,  4500000, '2025-01-10', 12, '2024-12-25 09:30', 'Nữ', '2024-12-18 10:00', 'Hoàn tất', 'Nguyên phòng',  'NV02', 'KH03'),
+('YC04', 4,        1100000, '2025-02-01', 6,  '2025-01-15 11:00', 'Nữ',      '2025-01-10 07:00', 'Hoàn tất', 'Ở ghép',        'NV04', 'KH04'),
+('YC05', 2,        1300000, '2025-03-01', 3,  '2025-02-20 15:00', 'Nữ',      '2025-02-15 08:30', 'Hoàn tất', 'Ở ghép',        'NV08', 'KH06'),
+('YC06', 1, 6500000, '2025-03-15', 12, '2025-03-05 10:00', 'Nữ', '2025-03-01 09:00', 'Hoàn tất', 'Nguyên phòng',  'NV02', 'KH05'),
+('YC07', 1,       1200000, '2025-04-01', 6,  '2025-03-25 09:00', 'Nữ',      '2025-03-20 10:00', 'Cần xác nhận', 'Ở ghép',    'NV04', 'KH14'),
+('YC08', 1, 5000000, '2025-05-01', 6,  '2025-04-20 14:00', 'Nữ', '2025-04-15 11:00', 'Cần xác nhận', 'Nguyên phòng','NV08','KH08');
 
 -- ============================================================
 -- CHI TIẾT PHIẾU YÊU CẦU
