@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, FileText, Calendar, User, Phone, Home, AlertCircle } from "lucide-react";
 import api from "../../services/api";
@@ -8,19 +8,15 @@ export function SaleContractLookup() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
-  const [hasSearched, setHasSearched] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
-    setHasSearched(true);
+  const fetchContracts = async (query = "") => {
     setLoading(true);
     setError("");
-    setSearchResults([]);
     try {
       const response = await api.get('/checkout/contracts/search', {
-        params: { keyword: searchQuery, status: 'all' }
+        params: { keyword: query, status: 'all' }
       });
       if (response.data && response.data.length > 0) {
         setSearchResults(response.data);
@@ -29,10 +25,18 @@ export function SaleContractLookup() {
       }
     } catch (err) {
       console.error(err);
-      setError("Có lỗi xảy ra khi tìm kiếm");
+      setError("Có lỗi xảy ra khi tải dữ liệu");
     } finally {
       setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    fetchContracts("");
+  }, []);
+
+  const handleSearch = () => {
+    fetchContracts(searchQuery);
   };
 
   const handleScheduleReturn = (contract) => {
@@ -57,7 +61,7 @@ export function SaleContractLookup() {
   const getRoomInfo = (contract) => {
     try {
       const giuong = contract.hop_dong_giuong[0].giuong;
-      return `${giuong.maphong} - ${giuong.phong.loaihinh}`;
+      return `${giuong.maphong}`;
     } catch (e) {
       return "N/A";
     }
@@ -108,12 +112,12 @@ export function SaleContractLookup() {
           </div>
         </div>
 
-        {hasSearched && !loading && searchResults.length === 0 && !error && (
+        {!loading && searchResults.length === 0 && !error && (
           <div className="border border-orange-200 bg-orange-50 rounded-lg p-6">
             <div className="flex items-center gap-3">
               <AlertCircle className="h-5 w-5 text-orange-600" />
               <p className="text-orange-900 font-medium">
-                Không tìm thấy hợp đồng
+                {searchQuery.trim() ? "Không tìm thấy hợp đồng phù hợp" : "Chưa có hợp đồng nào"}
               </p>
             </div>
           </div>

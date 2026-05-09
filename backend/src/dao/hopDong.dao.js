@@ -55,10 +55,10 @@ async function timKiem(keyword, tt) {
         magiuong,
         giuong (
           maphong
-        )
+        ) 
       )
     `);
-
+  
   if (tt) {
     query = query.eq('trangthai', tt);
   }

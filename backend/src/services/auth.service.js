@@ -27,7 +27,7 @@ async function DangNhap(username, password) {
   };
 
   const token = jwt.sign(
-    { id: user.username, role: user.role }, 
+    { id: user.username, role: user.role, maNV: user.maNV }, 
     process.env.JWT_SECRET || 'your-secret-key', 
     { expiresIn: '7d' }
   );

@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
+import { AuthContext } from "../../context/AuthContext";
 import { useParams, useNavigate } from "react-router-dom";
 import { Calendar as CalendarIcon, FileText, User, Phone, Home, CheckCircle2, AlertCircle } from "lucide-react";
 import api from "../../services/api";
@@ -9,6 +10,7 @@ import { vi } from "date-fns/locale";
 export function SaleReturnSchedule() {
   const { contractId } = useParams();
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useContext(AuthContext);
   const [contract, setContract] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -32,7 +34,7 @@ export function SaleReturnSchedule() {
     if (contractId) fetchContract();
   }, [contractId]);
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <MainLayout>
         <div className="p-6 max-w-4xl mx-auto">Đang tải...</div>
@@ -66,7 +68,7 @@ export function SaleReturnSchedule() {
   const getRoomInfo = (contractData) => {
     try {
       const giuong = contractData.hop_dong_giuong[0].giuong;
-      return `${giuong.maphong} - ${giuong.phong.loaihinh}`;
+      return `${giuong.maphong}`;
     } catch (e) {
       return "N/A";
     }
@@ -82,10 +84,16 @@ export function SaleReturnSchedule() {
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+
     const chosenDate = new Date(selectedDate);
-    
+
     if (chosenDate < today) {
       setValidationError("Thời gian đã chọn không hợp lệ");
+      return;
+    }
+
+    if (!user?.maNV) {
+      setValidationError("Không xác định được nhân viên đăng nhập");
       return;
     }
 
@@ -93,13 +101,19 @@ export function SaleReturnSchedule() {
       await api.post('/checkout/return-schedules', {
         maHD: contract.mahd,
         ngay: selectedDate,
-        maNV: 'NV02' // Mock sale staff ID
+        gio: selectedTime,
+        maNV: user?.maNV
       });
 
       setShowSuccess(true);
+
     } catch (err) {
       console.error(err);
-      setValidationError("Có lỗi xảy ra khi đăng ký lịch trả phòng.");
+
+      setValidationError(
+        err.response?.data?.message ||
+        "Có lỗi xảy ra khi đăng ký lịch trả phòng."
+      );
     }
   };
 
