@@ -155,6 +155,9 @@ class phieuYeuCauDao {
 
     if (trangthai) {
       query = query.eq('trangthai', trangthai);
+    } else {
+      // Mặc định không load các phiếu đang trong quá trình hẹn xem (chưa hoàn thành xem phòng)
+      query = query.not('trangthai', 'eq', 'Đang hẹn xem');
     }
 
     const { data, error } = await query;

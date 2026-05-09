@@ -41,9 +41,9 @@ const DanhSachPYCXemPhong = () => {
   };
 
   const filteredPhieu = dsPhieu.filter(p => {
-    return p.maHoSo.toLowerCase().includes(keyword.toLowerCase()) || 
-           p.khachHang.hoTen.toLowerCase().includes(keyword.toLowerCase()) ||
-           p.khachHang.sdt.includes(keyword);
+    return p.maHoSo.toLowerCase().includes(keyword.toLowerCase()) ||
+      p.khachHang.hoTen.toLowerCase().includes(keyword.toLowerCase()) ||
+      p.khachHang.sdt.includes(keyword);
   });
 
   if (!user) return null;
@@ -60,7 +60,7 @@ const DanhSachPYCXemPhong = () => {
       <div className="mb-8">
         <div className="relative">
           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
           </span>
           <input
             type="text"
@@ -75,26 +75,25 @@ const DanhSachPYCXemPhong = () => {
       {/* Card List */}
       <div className="space-y-4">
         {filteredPhieu.map((p) => (
-          <div 
-            key={p.maHoSo} 
+          <div
+            key={p.maHoSo}
             onClick={() => navigate(`/phieu-yeu-cau/${p.maHoSo}`)}
             className="bg-white rounded-2xl border border-gray-100 px-8 py-6 flex items-center justify-between shadow-sm hover:shadow-md hover:border-primary/30 transition-all cursor-pointer"
           >
             <div>
               <div className="flex items-center gap-3 mb-1">
                 <h3 className="text-[16px] font-bold text-navy">{p.khachHang.hoTen}</h3>
-                <span className={`text-[11px] font-semibold px-3 py-1 rounded-full border ${
-                  p.trangThai === 'Cần xác nhận' ? 'bg-pink-50 text-primary border-pink-100' :
-                  p.trangThai === 'Hoàn tất' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                  p.trangThai === 'Hủy thuê' ? 'bg-red-50 text-red-500 border-red-100' :
-                  'bg-gray-50 text-gray-500 border-gray-100'
-                }`}>
+                <span className={`text-[11px] font-semibold px-3 py-1 rounded-full border ${p.trangThai === 'Cần xác nhận' ? 'bg-pink-50 text-primary border-pink-100' :
+                    p.trangThai === 'Hoàn tất' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                      p.trangThai === 'Hủy thuê' ? 'bg-red-50 text-red-500 border-red-100' :
+                        'bg-gray-50 text-gray-500 border-gray-100'
+                  }`}>
                   {p.trangThai}
                 </span>
               </div>
               <p className="text-[13px] text-gray-400 font-medium">SĐT: {p.khachHang.sdt}</p>
             </div>
-            <svg className="text-gray-300" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            <svg className="text-gray-300" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>
           </div>
         ))}
       </div>
