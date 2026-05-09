@@ -129,7 +129,7 @@ export default function DangKyThuePhong() {
               className="bg-gradient-to-r from-[#e60076] to-[#ec003f] rounded-[14px] px-10 py-4 shadow-md hover:opacity-90 transition-opacity disabled:opacity-50"
             >
               <span className="font-['Inter',sans-serif] font-bold text-[16px] text-white">
-                {isSubmitting ? 'Đang xử lý...' : 'Lưu phiếu và xem phòng'}
+                {isSubmitting ? 'Đang xử lý...' : 'Tìm phòng'}
               </span>
             </button>
             <p className="font-['Inter',sans-serif] font-normal text-[#6a7282] text-[12px] mt-4">

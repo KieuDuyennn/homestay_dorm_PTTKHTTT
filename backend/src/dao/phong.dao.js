@@ -81,48 +81,7 @@ class phongDao {
     return { success: true, data: ketQua };
   }
 
-  /**
-   * Tìm giường đơn còn trống (cho thuê cá nhân)
-   * @param {string} macn - Mã chi nhánh (optional)
-   * @param {number} mucGiaMax - Mức giá tối đa mỗi giường
-   */
-  static async timGiuongDon({ macn, mucGiaMax, gioiTinh }) {
-    let query = supabase
-      .from('giuong')
-      .select(`
-        magiuong,
-        giagiuong,
-        tinhtrang,
-        maphong,
-        phong (
-          maphong,
-          gioitinh,
-          loaihinh,
-          tienthuethang,
-          trangthai,
-          macn,
-          chi_nhanh (tencn, diachi)
-        )
-      `)
-      .eq('tinhtrang', 'Chưa sử dụng');
 
-    if (mucGiaMax && mucGiaMax > 0) query = query.lte('giagiuong', mucGiaMax);
-
-    const { data, error } = await query.order('giagiuong', { ascending: true });
-
-    if (error) {
-      console.error('Lỗi phongDao.timGiuongDon:', error);
-      return { success: false, error };
-    }
-
-    // Lọc theo chi nhánh và giới tính sau (vì Supabase khó filter nested)
-    let ketQua = data || [];
-    if (macn) ketQua = ketQua.filter(g => g.phong && g.phong.macn === macn);
-    // Lọc giới tính: lấy giường ở phòng đúng giới tính hoặc phòng Hỗn hợp
-    if (gioiTinh) ketQua = ketQua.filter(g => !g.phong || g.phong.gioitinh === gioiTinh || g.phong.gioitinh === 'Hỗn hợp');
-
-    return { success: true, data: ketQua };
-  }
 
   // Lấy trạng thái hiện tại của phòng
   static async selectTrangThai(maphong) {

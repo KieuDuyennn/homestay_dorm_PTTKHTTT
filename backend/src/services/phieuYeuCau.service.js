@@ -329,7 +329,7 @@ class phieuYeuCauService {
         phong: phongDauTien ? {
           maPhong: phongDauTien.maphong,
           maChiNhanh: phongDauTien.macn,
-          loaiPhong: phongDauTien.loaihinh,
+          loaiPhong: phieuData.loaiphong,
           tienThueThang: phongDauTien.tienthuethang,
           gioiTinh: phongDauTien.gioitinh,
           trangThai: trangThaiPhongMap[phongDauTien.maphong] || phongDauTien.trangthai,

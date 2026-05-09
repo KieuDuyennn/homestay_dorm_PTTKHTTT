@@ -21,12 +21,12 @@ class timKiemPhongService {
       macn = cnMap[chiNhanh] || null;
     }
 
-    // Cá nhân: tìm giường đơn trống
-    if (hinhThucThue === 'Cá nhân') {
-      const result = await phongDao.timGiuongDon({ macn, mucGiaMax, gioiTinh });
+    // Cá nhân hoặc Ở ghép: tìm phòng ở ghép còn đủ giường trống
+    if (hinhThucThue === 'Cá nhân' || hinhThucThue === 'Ở ghép') {
+      const result = await phongDao.timPhongOGhep({ macn, soNguoi: soNguoiThue, mucGiaMax, gioiTinh });
       return {
         success: result.success,
-        loai: 'ca-nhan',
+        loai: 'o-ghep',
         data: result.data || [],
         error: result.error
       };
@@ -38,17 +38,6 @@ class timKiemPhongService {
       return {
         success: result.success,
         loai: 'nguyen-can',
-        data: result.data || [],
-        error: result.error
-      };
-    }
-
-    // Ở ghép: tìm phòng ở ghép có đủ giường trống
-    if (hinhThucThue === 'Ở ghép') {
-      const result = await phongDao.timPhongOGhep({ macn, soNguoi: soNguoiThue, mucGiaMax, gioiTinh });
-      return {
-        success: result.success,
-        loai: 'o-ghep',
         data: result.data || [],
         error: result.error
       };
