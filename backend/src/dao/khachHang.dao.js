@@ -30,14 +30,8 @@ class khachHangDao {
     return { success: true, data: data || null };
   }
 
-  // Cập nhật thông tin cơ bản của khách hàng
-  // Chỉ cho phép sửa: hoten, sdt, socccd
-  static async updateThongTin(makh, { hoten, sdt, socccd }) {
-    const updateData = {};
-    if (hoten !== undefined) updateData.hoten = hoten;
-    if (sdt !== undefined) updateData.sdt = sdt;
-    if (socccd !== undefined) updateData.socccd = socccd;
-
+  // Cập nhật thông tin khách hàng
+  static async updateThongTin(makh, updateData) {
     const { data, error } = await supabase
       .from('khach_hang')
       .update(updateData)
@@ -47,6 +41,21 @@ class khachHangDao {
 
     if (error) {
       console.error('Lỗi khachHangDao.updateThongTin:', error);
+      return { success: false, error };
+    }
+    return { success: true, data };
+  }
+
+  static async updateStatus(makh, trangthai) {
+    const { data, error } = await supabase
+      .from('khach_hang')
+      .update({ trangthai })
+      .eq('makh', makh)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Lỗi khachHangDao.updateStatus:', error);
       return { success: false, error };
     }
     return { success: true, data };

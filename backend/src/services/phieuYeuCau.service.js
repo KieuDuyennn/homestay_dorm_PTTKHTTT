@@ -14,8 +14,20 @@ class phieuYeuCauService {
       const khExist = await khachHangService.findByCCCD(data.CCCD);
       if (khExist.success && khExist.data) {
         maKH = khExist.data.makh;
+        // Cập nhật thông tin khách hàng cũ theo dữ liệu mới từ màn hình
+        const updateData = {
+          hoten: data.HoTen,
+          sdt: data.SoDienThoai,
+          diachicutru: data.DiaChi,
+          email: data.Email,
+          gioitinh: data.GioiTinh,
+          ngaysinh: data.NgaySinh || null,
+          quoctich: data.QuocTich || 'Việt Nam',
+          trangthai: 'Mới'
+        };
+        await khachHangService.updateThongTin(maKH, updateData);
       } else {
-        maKH = await khachHangService.sinhMa(); // Auto generate KH id
+        maKH = await khachHangService.sinhMa();
         const khachHangData = {
           makh: maKH,
           hoten: data.HoTen,
@@ -25,8 +37,9 @@ class phieuYeuCauService {
           gioitinh: data.GioiTinh,
           ngaysinh: data.NgaySinh || null,
           socccd: data.CCCD,
+          quoctich: data.QuocTich || 'Việt Nam',
           loaikhachhang: 'Cá nhân',
-          trangthai: 'Chờ kiểm tra'  // Constraint: 'Hợp lệ' | 'Chờ kiểm tra'
+          trangthai: 'Mới'
         };
 
         const khResult = await khachHangService.insert(khachHangData);

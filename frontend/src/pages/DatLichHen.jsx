@@ -50,6 +50,7 @@ export default function DatLichHen() {
   // Giờ đã bận (mảng số giờ UTC)
   const [gioBoi, setGioBoi] = useState([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
 
   const daysInMonth = getDaysInMonth(currentYear, currentMonth);
   const firstDay = getFirstDayOfMonth(currentYear, currentMonth);
@@ -192,6 +193,14 @@ export default function DatLichHen() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleHuyYeuCau = () => {
+    sessionStorage.removeItem('formDataYeuCau');
+    sessionStorage.removeItem('selectedRooms');
+    sessionStorage.removeItem('currentMaYC');
+    sessionStorage.removeItem('editLichHenMode');
+    navigate('/'); // Quay về trang chủ
   };
 
   return (
@@ -384,10 +393,65 @@ export default function DatLichHen() {
           >
             {isSubmitting ? 'Đang lưu...' : (editLichHenMode ? 'Lưu thay đổi' : 'Lưu lịch hẹn')}
           </button>
+          
+          <button
+            onClick={() => setIsCancelModalOpen(true)}
+            className="w-full mt-3 bg-white border border-[#e60076] text-[#e60076] font-['Inter',sans-serif] font-bold text-[16px] py-4 rounded-[12px] hover:bg-[#fdf2f8] transition-all"
+          >
+            Hủy yêu cầu
+          </button>
+
           <p className="font-['Inter',sans-serif] text-[#9ca3af] text-[12px] mt-3">
             Bằng cách nhấn nút trên, bạn xác nhận sẽ đến xem phòng theo lịch đã chọn.
           </p>
         </div>
+
+        {/* Modal Xác nhận hủy */}
+        {isCancelModalOpen && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] animate-in fade-in duration-200">
+            <div className="bg-white rounded-[24px] p-8 max-w-[440px] w-[90%] relative shadow-2xl animate-in zoom-in-95 duration-200">
+              <button 
+                onClick={() => setIsCancelModalOpen(false)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+
+              <div className="flex flex-col items-center text-center">
+                <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mb-6">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                  </svg>
+                </div>
+
+                <h3 className="text-[24px] font-bold text-[#1e2939] mb-4">Bạn muốn hủy yêu cầu</h3>
+                <p className="text-[#64748b] leading-relaxed mb-8">
+                  Sau khi bạn hủy yêu cầu xem phòng thì yêu cầu này sẽ bị xóa khỏi hệ thống. Bạn có chắc chắn muốn hủy không?
+                </p>
+
+                <div className="flex flex-col gap-3 w-full">
+                  <button
+                    onClick={handleHuyYeuCau}
+                    className="w-full bg-[#e60076] text-white font-bold py-4 rounded-xl hover:bg-[#c40064] transition-all"
+                  >
+                    Xác nhận
+                  </button>
+                  <button
+                    onClick={() => setIsCancelModalOpen(false)}
+                    className="w-full bg-white border border-gray-200 text-gray-600 font-bold py-4 rounded-xl hover:bg-gray-50 transition-all"
+                  >
+                    Đóng lại
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </MainLayout>
   );
