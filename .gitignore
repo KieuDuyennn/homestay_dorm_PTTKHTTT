@@ -8,3 +8,6 @@ dist
 .env.example
 docs
 KIs.md
+repomix-output.xml
+PROMPT_BACKEND_v2.md
+

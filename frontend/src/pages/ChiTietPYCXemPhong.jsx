@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import MainLayout from '../components/MainLayout';
+import ModalHuyThue from '../components/ModalHuyThue';
 import PhieuYeuCauXemPhong_BUS from '../data/mockPhieuYeuCau';
 
 const ChiTietPYCXemPhong = () => {
@@ -10,6 +11,7 @@ const ChiTietPYCXemPhong = () => {
   const [phieu, setPhieu] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({});
+  const [showModalHuy, setShowModalHuy] = useState(false);
 
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
@@ -48,6 +50,13 @@ const ChiTietPYCXemPhong = () => {
 
   const handleXacNhanThue = () => {
     navigate(`/ghi-nhan-xac-nhan-thue/${phieu.maHoSo}`);
+  };
+
+  const handleHuyThue = (lyDo) => {
+    const updated = { ...phieu, trangThai: 'Hủy thuê', lyDoHuy: lyDo };
+    PhieuYeuCauXemPhong_BUS.capNhatPYC(updated);
+    setPhieu(updated);
+    setShowModalHuy(false);
   };
 
   if (!user || !phieu) return null;
@@ -240,12 +249,19 @@ const ChiTietPYCXemPhong = () => {
             </p>
           </div>
 
-          {trangThaiPhong && (
+          {trangThaiPhong ? (
             <button 
               onClick={handleXacNhanThue}
-              className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-[14px] font-bold rounded-xl hover:from-green-600 hover:to-emerald-600 transition-all shadow-md shadow-green-200"
+              className="w-full py-3 bg-[#009944] text-white text-[14px] font-bold rounded-xl hover:bg-green-700 transition-all shadow-md shadow-green-200"
             >
               Tiến hành xác nhận thuê
+            </button>
+          ) : (
+            <button 
+              onClick={() => setShowModalHuy(true)}
+              className="w-full py-3 bg-white border border-red-200 text-red-600 text-[14px] font-bold rounded-xl hover:bg-red-50 transition-all shadow-sm"
+            >
+              Hủy thuê
             </button>
           )}
         </div>
@@ -258,6 +274,12 @@ const ChiTietPYCXemPhong = () => {
           <p className="text-[14px] text-red-600 italic">"{phieu.lyDoHuy}"</p>
         </div>
       )}
+
+      <ModalHuyThue 
+        visible={showModalHuy} 
+        onDong={() => setShowModalHuy(false)}
+        onXacNhan={handleHuyThue}
+      />
     </MainLayout>
   );
 };

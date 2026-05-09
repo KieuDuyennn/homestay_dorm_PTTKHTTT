@@ -62,7 +62,12 @@ const DanhSachPYCXemPhong = () => {
             <div>
               <div className="flex items-center gap-3 mb-1">
                 <h3 className="text-[16px] font-bold text-navy">{p.khachHang.hoTen}</h3>
-                <span className="bg-pink-50 text-primary text-[11px] font-semibold px-3 py-1 rounded-full border border-pink-100">
+                <span className={`text-[11px] font-semibold px-3 py-1 rounded-full border ${
+                  p.trangThai === 'Cần xác nhận' ? 'bg-pink-50 text-primary border-pink-100' :
+                  p.trangThai === 'Hoàn tất' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                  p.trangThai === 'Hủy thuê' ? 'bg-red-50 text-red-500 border-red-100' :
+                  'bg-gray-50 text-gray-500 border-gray-100'
+                }`}>
                   {p.trangThai}
                 </span>
               </div>

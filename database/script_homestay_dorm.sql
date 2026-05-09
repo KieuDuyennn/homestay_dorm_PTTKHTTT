@@ -53,7 +53,7 @@ CREATE TABLE PHONG (
     GioiTinh        VARCHAR(10)     NOT NULL CHECK (GioiTinh IN ('Nam', 'Nữ', 'Hỗn hợp')),
     LoaiHinh        VARCHAR(50)     NOT NULL CHECK (LoaiHinh IN ('Ở ghép', 'Nguyên phòng')),
     TienThueThang   NUMERIC(12,0)   NOT NULL CHECK (TienThueThang > 0),
-    TrangThai       VARCHAR(30)     NOT NULL CHECK (TrangThai IN ('Còn trống', 'Đã đầy', 'Đang bảo trì')),
+    TrangThai       VARCHAR(30)     NOT NULL CHECK (TrangThai IN ('Chưa sử dụng', 'Đang sử dụng', 'Đang giữ chỗ')),
     MaCN            VARCHAR(10)     NOT NULL REFERENCES CHI_NHANH(MaCN)
 );
 
@@ -64,7 +64,7 @@ CREATE TABLE GIUONG (
     MaGiuong    VARCHAR(10)     NOT NULL,
     MaPhong     VARCHAR(10)     NOT NULL REFERENCES PHONG(MaPhong),
     GiaGiuong   NUMERIC(12,0)   NOT NULL CHECK (GiaGiuong > 0),
-    TinhTrang   VARCHAR(20)     NOT NULL CHECK (TinhTrang IN ('Chưa sử dụng', 'Đang sử dụng')),
+    TinhTrang   VARCHAR(20)     NOT NULL CHECK (TinhTrang IN ('Chưa sử dụng', 'Đang sử dụng', 'Đang giữ chỗ')),
     PRIMARY KEY (MaGiuong, MaPhong)
 );
 
@@ -233,7 +233,7 @@ CREATE TABLE THANH_TOAN (
                             'Đã thanh toán',
                             'Thanh toán thất bại', 
 							'Chờ tính cọc',
-                            'Quá thời hạn/Chờ thanh toán',
+                            'Quá thời hạn',
                             'Chờ đối soát',
                             'Đối soát thành công',
                             'Đối soát thất bại')),
@@ -403,16 +403,17 @@ INSERT INTO CHI_NHANH (MaCN, TenCN, DiaChi, SoLuongPhong, NoiQuy, QuyDinhCoc) VA
 -- PHÒNG
 -- ============================================================
 INSERT INTO PHONG (MaPhong, SoLuongGiuong, GioiTinh, LoaiHinh, TienThueThang, TrangThai, MaCN) VALUES
-('P001', 4, 'Nam',     'Ở ghép',        1200000, 'Đã đầy',    'CN01'),
-('P002', 4, 'Nữ',      'Ở ghép',        1200000, 'Còn trống', 'CN01'),
-('P003', 1, 'Hỗn hợp', 'Nguyên phòng',  4500000, 'Đã đầy',    'CN01'),
-('P004', 6, 'Nam',     'Ở ghép',        1000000, 'Còn trống', 'CN02'),
-('P005', 4, 'Nữ',      'Ở ghép',        1100000, 'Đã đầy',    'CN02'),
-('P006', 1, 'Hỗn hợp', 'Nguyên phòng',  5000000, 'Còn trống', 'CN02'),
-('P007', 2, 'Nữ',      'Ở ghép',        1300000, 'Đã đầy',    'CN03'),
-('P008', 1, 'Hỗn hợp', 'Nguyên phòng',  3800000, 'Còn trống', 'CN03'),
-('P009', 4, 'Nam',     'Ở ghép',        1050000, 'Đang bảo trì','CN03'),
-('P010', 1, 'Hỗn hợp', 'Nguyên phòng',  6500000, 'Đã đầy',    'CN04');
+('P001', 4, 'Nam',     'Ở ghép',        1200000, 'Đang sử dụng', 'CN01'),
+('P002', 4, 'Nữ',      'Ở ghép',        1200000, 'Chưa sử dụng', 'CN01'),
+('P003', 1, 'Hỗn hợp', 'Nguyên phòng',  4500000, 'Đang sử dụng', 'CN01'),
+('P004', 6, 'Nam',     'Ở ghép',        1000000, 'Chưa sử dụng', 'CN02'),
+('P005', 4, 'Nữ',      'Ở ghép',        1100000, 'Đang sử dụng', 'CN02'),
+('P006', 1, 'Hỗn hợp', 'Nguyên phòng',  5000000, 'Chưa sử dụng', 'CN02'),
+('P007', 2, 'Nữ',      'Ở ghép',        1300000, 'Đang sử dụng', 'CN03'),
+('P008', 1, 'Hỗn hợp', 'Nguyên phòng',  3800000, 'Chưa sử dụng', 'CN03'),
+('P009', 4, 'Nam',     'Ở ghép',        1050000, 'Chưa sử dụng', 'CN03'),
+('P010', 1, 'Hỗn hợp', 'Nguyên phòng',  6500000, 'Đang sử dụng', 'CN04'),
+('P011', 2, 'Nữ',      'Ở ghép',        1500000, 'Đang giữ chỗ', 'CN01');
 
 -- ============================================================
 -- GIƯỜNG
@@ -437,7 +438,9 @@ INSERT INTO GIUONG (MaGiuong, MaPhong, GiaGiuong, TinhTrang) VALUES
 ('G01', 'P007', 1300000, 'Đang sử dụng'),
 ('G02', 'P007', 1300000, 'Đang sử dụng'),
 ('G01', 'P008', 3800000, 'Chưa sử dụng'),
-('G01', 'P010', 6500000, 'Đang sử dụng');
+('G01', 'P010', 6500000, 'Đang sử dụng'),
+('G01', 'P011', 1500000, 'Đang giữ chỗ'),
+('G02', 'P011', 1500000, 'Đang giữ chỗ');
 
 -- ============================================================
 -- DỊCH VỤ
@@ -617,7 +620,7 @@ INSERT INTO THANH_TOAN
 ('TT14','Tiền cọc', 13000000,  '2025-03-01 11:00','2025-03-06 17:00','2025-03-02 15:00','Đối soát thành công','Đã thanh toán','Chuyển khoản','Cọc 2 tháng HD06','YC06','KH05','HD06','NV07','NV02'),
 ('TT15','Tiền thuê', 6500000,  '2025-04-15 08:00','2025-04-20 17:00','2025-04-16 09:00','Đối soát thành công','Đã thanh toán','Chuyển khoản','Tháng 4/2025 HD06', NULL,'KH05','HD06','NV07','NV02'),
 ('TT16','Tiền thuê', 4800000,  '2025-03-01 08:00','2025-03-06 17:00',NULL,              'Chờ đối soát',               'Chờ thanh toán', NULL,          'Tháng 3/2025 HD01', NULL,'KH01','HD01','NV03','NV02'),
-('TT17','Tiền thuê', 2400000,  '2025-03-05 08:00','2025-03-10 17:00',NULL,              'Quá thời hạn/Chờ thanh toán','Chờ thanh toán', NULL,          'Tháng 3/2025 HD02', NULL,'KH02','HD02','NV07','NV04');
+('TT17','Tiền thuê', 2400000,  '2025-03-05 08:00','2025-03-10 17:00',NULL,              'Quá thời hạn',               'Chờ thanh toán', NULL,          'Tháng 3/2025 HD02', NULL,'KH02','HD02','NV07','NV04');
 
 -- ============================================================
 -- BIÊN BẢN VI PHẠM
