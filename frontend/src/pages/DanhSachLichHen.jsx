@@ -8,6 +8,7 @@ const DanhSachLichHen = () => {
   const [user, setUser] = useState(null);
   const [dsLichHen, setDsLichHen] = useState([]);
   const [activeTab, setActiveTab] = useState('all'); // 'all' hoặc 'upcoming'
+  const [searchTerm, setSearchTerm] = useState('');
   const [processingMaYC, setProcessingMaYC] = useState(null);
   const [confirmModal, setConfirmModal] = useState({ open: false, mayc: null });
   const navigate = useNavigate();
@@ -86,13 +87,26 @@ const DanhSachLichHen = () => {
   };
 
   const filteredLichHen = dsLichHen.filter(item => {
-    if (activeTab === 'all') return true;
+    // 1. Lọc theo tab (All/Upcoming)
+    let matchesTab = true;
     if (activeTab === 'upcoming') {
-      if (!item.thoigianhenxem) return false;
-      const hen = new Date(item.thoigianhenxem);
-      return hen >= new Date();
+      if (!item.thoigianhenxem) matchesTab = false;
+      else {
+        const hen = new Date(item.thoigianhenxem);
+        matchesTab = (hen >= new Date());
+      }
     }
-    return true;
+
+    // 2. Lọc theo search term (Tên khách hoặc SĐT)
+    let matchesSearch = true;
+    if (searchTerm) {
+      const lowerSearch = searchTerm.toLowerCase();
+      const tenKhach = (item.khach_hang?.hoten || '').toLowerCase();
+      const sdtKhach = (item.khach_hang?.sdt || '').toLowerCase();
+      matchesSearch = tenKhach.includes(lowerSearch) || sdtKhach.includes(lowerSearch);
+    }
+
+    return matchesTab && matchesSearch;
   });
 
   if (!user) return null;
@@ -104,6 +118,23 @@ const DanhSachLichHen = () => {
         <div className="mb-8">
           <h1 className="text-[32px] font-extrabold text-navy leading-tight mb-2">Lịch hẹn của tôi</h1>
           <p className="text-[14px] text-gray-500">Quản lý và theo dõi các cuộc hẹn xem phòng sanctuary của bạn.</p>
+        </div>
+
+        {/* Tìm kiếm */}
+        <div className="relative mb-8">
+          <input
+            type="text"
+            placeholder="Tìm kiếm theo tên khách hoặc số điện thoại..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full bg-white border border-gray-200 rounded-2xl py-4 pl-12 pr-4 text-[15px] font-['Inter',sans-serif] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
+          />
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </div>
         </div>
 
         {/* Tabs */}
