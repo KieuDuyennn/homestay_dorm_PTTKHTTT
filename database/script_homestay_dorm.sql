@@ -279,6 +279,7 @@ CREATE TABLE BIEN_BAN_TRA_PHONG (
 CREATE TABLE LICH_TRA_PHONG (
     MaLichTraPhong  VARCHAR(10)     PRIMARY KEY,
     Ngay            DATE            NOT NULL,
+    Gio             TIME            NOT NULL,
     TrangThai       VARCHAR(30)     NOT NULL CHECK (TrangThai IN ('Chưa xác nhận', 'Đã xác nhận')),
     MaHD            VARCHAR(10)     NOT NULL REFERENCES HOP_DONG(MaHD),
     MaNV            VARCHAR(10)     NOT NULL REFERENCES NHAN_VIEN(MaNV)

@@ -57,14 +57,11 @@ async function timKiem(keyword, tt) {
       hop_dong_giuong (
         magiuong,
         giuong (
-          maphong,
-          phong (
-            loaihinh
-          )
-        )
+          maphong
+        ) 
       )
     `);
-
+  
   if (tt) {
     query = query.eq('trangthai', tt);
   }

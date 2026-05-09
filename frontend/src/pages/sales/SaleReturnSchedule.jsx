@@ -66,7 +66,7 @@ export function SaleReturnSchedule() {
   const getRoomInfo = (contractData) => {
     try {
       const giuong = contractData.hop_dong_giuong[0].giuong;
-      return `${giuong.maphong} - ${giuong.phong.loaihinh}`;
+      return `${giuong.maphong}`;
     } catch (e) {
       return "N/A";
     }
@@ -82,8 +82,9 @@ export function SaleReturnSchedule() {
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+
     const chosenDate = new Date(selectedDate);
-    
+
     if (chosenDate < today) {
       setValidationError("Thời gian đã chọn không hợp lệ");
       return;
@@ -93,13 +94,19 @@ export function SaleReturnSchedule() {
       await api.post('/checkout/return-schedules', {
         maHD: contract.mahd,
         ngay: selectedDate,
-        maNV: 'NV02' // Mock sale staff ID
+        gio: selectedTime,
+        maNV: 'NV02'
       });
 
       setShowSuccess(true);
+
     } catch (err) {
       console.error(err);
-      setValidationError("Có lỗi xảy ra khi đăng ký lịch trả phòng.");
+
+      setValidationError(
+        err.response?.data?.message ||
+        "Có lỗi xảy ra khi đăng ký lịch trả phòng."
+      );
     }
   };
 

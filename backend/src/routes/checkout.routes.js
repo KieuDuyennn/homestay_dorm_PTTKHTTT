@@ -43,13 +43,27 @@ router.get('/contracts/:id', async (req, res, next) => {
 });
 
 // Checkout report routes - Direct BUS mapping
-router.post('/return-schedules', async (req, res, next) => {
+router.post('/return-schedules', async (req, res) => {
   try {
-    const { maHD, ngay, maNV } = req.body;
-    const result = await LichTraPhong_BUS.DangKyLichTraPhong(maHD, ngay, maNV || 'NV02');
+    const { maHD, ngay, gio, maNV } = req.body;
+
+    const result =
+      await LichTraPhong_BUS.DangKyLichTraPhong(
+        maHD,
+        ngay,
+        gio,
+        maNV || 'NV02'
+      );
+
     res.status(201).json(result);
+
   } catch (error) {
-    next(error);
+    console.error(error);
+
+    res.status(400).json({
+      success: false,
+      message: error.message
+    });
   }
 });
 
