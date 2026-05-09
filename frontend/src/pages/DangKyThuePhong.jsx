@@ -22,7 +22,8 @@ export default function DangKyThuePhong() {
     ThoiHanThue: '',
     NgayDuKienDonVao: '',
     LoaiPhong: '',
-    YeuCauKhac: ''
+    YeuCauKhac: '',
+    QuocTich: 'Việt Nam'
   });
 
   React.useEffect(() => {
@@ -81,6 +82,9 @@ export default function DangKyThuePhong() {
       case 'ThoiHanThue':
         if (!value) error = 'Vui lòng chọn thời hạn thuê';
         break;
+      case 'QuocTich':
+        if (!value) error = 'Vui lòng nhập quốc tịch';
+        break;
       default:
         break;
     }
@@ -97,7 +101,7 @@ export default function DangKyThuePhong() {
     const fields = [
       'HoTen', 'SoDienThoai', 'CCCD', 'DiaChi', 'Email', 
       'GioiTinh', 'NgaySinh', 'ChiNhanh', 'MucGia', 
-      'SoNguoiMuonThue', 'HinhThucThue', 'ThoiHanThue'
+      'SoNguoiMuonThue', 'HinhThucThue', 'ThoiHanThue', 'QuocTich'
     ];
     let hasError = false;
     const newErrors = {};

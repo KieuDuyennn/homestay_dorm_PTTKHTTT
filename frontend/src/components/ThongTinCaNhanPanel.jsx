@@ -79,6 +79,22 @@ export default function ThongTinCaNhanPanel({ formData, onChange, errors }) {
           {errors?.DiaChi && <span className="text-red-500 text-xs">{errors.DiaChi}</span>}
         </div>
 
+        {/* Quốc tịch */}
+        <div className="flex flex-col gap-2 w-full">
+          <label className="font-['Inter',sans-serif] font-semibold text-[#364153] text-[14px]">
+            QUỐC TỊCH <span className="text-[#e60076]">*</span>
+          </label>
+          <input
+            type="text"
+            name="QuocTich"
+            value={formData.QuocTich || ''}
+            onChange={handleChange}
+            placeholder="Việt Nam"
+            className={`bg-[#fdf2f8] border ${errors?.QuocTich ? 'border-red-500' : 'border-[#fccee8]'} border-[0.87px] border-solid h-[49.715px] px-4 py-3 rounded-[10px] w-full font-['Inter',sans-serif] text-[#0a0a0a] text-[16px] focus:outline-none focus:ring-1 focus:ring-[#e60076]`}
+          />
+          {errors?.QuocTich && <span className="text-red-500 text-xs">{errors.QuocTich}</span>}
+        </div>
+
         {/* Email */}
         <div className="flex flex-col gap-2 w-full">
           <label className="font-['Inter',sans-serif] font-semibold text-[#364153] text-[14px]">
