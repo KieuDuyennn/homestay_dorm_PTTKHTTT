@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import MainLayout from '../components/MainLayout';
 import ModalHuyThue from '../components/ModalHuyThue';
-import PhieuYeuCauXemPhong_BUS from '../data/mockPhieuYeuCau';
+import api from '../services/api';
 
 const ChiTietPYCXemPhong = () => {
   const { id } = useParams();
@@ -17,51 +17,89 @@ const ChiTietPYCXemPhong = () => {
     const savedUser = localStorage.getItem('user');
     if (!savedUser) { navigate('/'); return; }
     setUser(JSON.parse(savedUser));
-    const p = PhieuYeuCauXemPhong_BUS.layChiTietPYC(id);
-    if (!p) { navigate('/phieu-yeu-cau'); return; }
-    setPhieu(p);
-    setFormData({
-      hoTen: p.khachHang?.hoTen || '',
-      sdt: p.khachHang?.sdt || '',
-      gioiTinh: p.khachHang?.gioiTinh || '',
-      cccd: p.khachHang?.cccd || '',
-      quocTich: p.khachHang?.quocTich || '',
-      soNguoiDuKien: p.khachHang?.soNguoiDuKien || '',
-      ngayVaoO: p.ngayVaoO || '',
-      thoiHanThue: p.thoiHanThue || '',
-    });
+    
+    fetchChiTiet();
   }, [id, navigate]);
+
+  const fetchChiTiet = async () => {
+    try {
+      const res = await api.get(`/phieu-yeu-cau/chi-tiet-voi-tinh-trang/${id}`);
+      if (res.data.success) {
+        const p = res.data.data;
+        setPhieu(p);
+        setFormData({
+          hoTen: p.khachHang?.hoTen || '',
+          sdt: p.khachHang?.sdt || '',
+          gioiTinh: p.khachHang?.gioiTinh || '',
+          cccd: p.khachHang?.cccd || '',
+          quocTich: p.khachHang?.quocTich || '',
+          soNguoiDuKien: p.khachHang?.soNguoiDuKien || '',
+          ngayVaoO: p.ngayVaoO || '',
+          thoiHanThue: p.thoiHanThue || '',
+        });
+      } else {
+        navigate('/phieu-yeu-cau');
+      }
+    } catch (error) {
+      console.error('Lỗi khi tải chi tiết:', error);
+      navigate('/phieu-yeu-cau');
+    }
+  };
 
   const handleInputChange = (e) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSave = () => {
-    const updated = {
-      ...phieu,
-      khachHang: { ...phieu.khachHang, hoTen: formData.hoTen, sdt: formData.sdt, gioiTinh: formData.gioiTinh, cccd: formData.cccd, quocTich: formData.quocTich, soNguoiDuKien: formData.soNguoiDuKien },
-      ngayVaoO: formData.ngayVaoO,
-      thoiHanThue: formData.thoiHanThue,
-    };
-    PhieuYeuCauXemPhong_BUS.capNhatPYC(updated);
-    setPhieu(updated);
-    setIsEditing(false);
+  const handleSave = async () => {
+    try {
+      const res = await api.put(`/phieu-yeu-cau/${id}/thong-tin-khach`, {
+        hoTen: formData.hoTen,
+        sdt: formData.sdt,
+        cccd: formData.cccd,
+        ngayVaoO: formData.ngayVaoO
+      });
+      if (res.data.success) {
+        // Cập nhật lại thông tin local sau khi lưu thành công
+        const updated = {
+          ...phieu,
+          khachHang: { ...phieu.khachHang, hoTen: formData.hoTen, sdt: formData.sdt, gioiTinh: formData.gioiTinh, cccd: formData.cccd, quocTich: formData.quocTich, soNguoiDuKien: formData.soNguoiDuKien },
+          ngayVaoO: formData.ngayVaoO,
+          thoiHanThue: formData.thoiHanThue,
+        };
+        setPhieu(updated);
+        setIsEditing(false);
+      } else {
+        alert(res.data.message || 'Lỗi khi cập nhật thông tin');
+      }
+    } catch (error) {
+      console.error('Lỗi khi cập nhật:', error);
+      alert('Lỗi khi cập nhật thông tin');
+    }
   };
 
   const handleXacNhanThue = () => {
     navigate(`/ghi-nhan-xac-nhan-thue/${phieu.maHoSo}`);
   };
 
-  const handleHuyThue = (lyDo) => {
-    const updated = { ...phieu, trangThai: 'Hủy thuê', lyDoHuy: lyDo };
-    PhieuYeuCauXemPhong_BUS.capNhatPYC(updated);
-    setPhieu(updated);
-    setShowModalHuy(false);
+  const handleHuyThue = async (lyDo) => {
+    try {
+      const res = await api.patch(`/phieu-yeu-cau/${id}/huy-thue`, { lyDoHuy: lyDo });
+      if (res.data.success) {
+        const updated = { ...phieu, trangThai: 'Hủy thuê', lyDoHuy: lyDo };
+        setPhieu(updated);
+        setShowModalHuy(false);
+      } else {
+        alert(res.data.message || 'Lỗi khi hủy thuê');
+      }
+    } catch (error) {
+      console.error('Lỗi khi hủy thuê:', error);
+      alert('Lỗi khi hủy thuê');
+    }
   };
 
   if (!user || !phieu) return null;
 
-  const trangThaiPhong = phieu.phong?.trangThai === 'Còn trống';
+  const trangThaiPhong = phieu.phong?.trangThai === 'Chưa sử dụng' || phieu.phong?.trangThai === 'Còn trống';
 
   return (
     <MainLayout>
@@ -145,7 +183,7 @@ const ChiTietPYCXemPhong = () => {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                 Họ và tên
               </div>
-              <p className="text-[15px] font-bold text-navy">{phieu.khachHang.hoTen}</p>
+              <p className="text-[15px] font-bold text-navy">{phieu.khachHang?.hoTen}</p>
             </div>
 
             {/* SĐT */}
@@ -154,21 +192,21 @@ const ChiTietPYCXemPhong = () => {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                 Số điện thoại
               </div>
-              <p className="text-[15px] font-bold text-navy">{phieu.khachHang.sdt}</p>
+              <p className="text-[15px] font-bold text-navy">{phieu.khachHang?.sdt}</p>
             </div>
 
             {/* Giới tính + Quốc tịch */}
             <div className="grid grid-cols-2 gap-8">
               <div>
                 <p className="text-[12px] text-gray-400 mb-1">Giới tính</p>
-                <p className="text-[15px] font-bold text-navy">{phieu.khachHang.gioiTinh}</p>
+                <p className="text-[15px] font-bold text-navy">{phieu.khachHang?.gioiTinh}</p>
               </div>
               <div>
                 <div className="flex items-center gap-2 text-[12px] text-gray-400 mb-1">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
                   Quốc tịch
                 </div>
-                <p className="text-[15px] font-bold text-navy">{phieu.khachHang.quocTich}</p>
+                <p className="text-[15px] font-bold text-navy">{phieu.khachHang?.quocTich}</p>
               </div>
             </div>
 
@@ -178,13 +216,13 @@ const ChiTietPYCXemPhong = () => {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
                 Số CCCD/CMND
               </div>
-              <p className="text-[15px] font-bold text-navy">{phieu.khachHang.cccd}</p>
+              <p className="text-[15px] font-bold text-navy">{phieu.khachHang?.cccd}</p>
             </div>
 
             {/* Số lượng dự kiến */}
             <div>
               <p className="text-[12px] text-gray-400 mb-1">Số lượng dự kiến</p>
-              <p className="text-[15px] font-bold text-navy">{phieu.khachHang.soNguoiDuKien || '-'} người</p>
+              <p className="text-[15px] font-bold text-navy">{phieu.khachHang?.soNguoiDuKien || '-'} người</p>
             </div>
 
             {/* Ngày vào ở */}
@@ -214,7 +252,7 @@ const ChiTietPYCXemPhong = () => {
             ['Loại hình thuê:', phieu.loaiHinhThue],
             ['Mã chi nhánh:', phieu.phong?.maChiNhanh],
             ['Mã phòng:', phieu.phong?.maPhong, true],
-            ['Mã giường:', phieu.phong?.dsGiuong?.[0]?.maGiuong || '-'],
+            ['Mã giường:', phieu.dsGiuong?.[0]?.maGiuong || '-'],
             ['Loại phòng:', phieu.phong?.loaiPhong],
           ].map(([label, value, isPink], idx) => (
             <div key={idx} className="flex items-center justify-between py-1">
@@ -243,8 +281,8 @@ const ChiTietPYCXemPhong = () => {
             </div>
             <p className={`text-[13px] ml-9 ${trangThaiPhong ? 'text-green-600' : 'text-red-600'}`}>
               {trangThaiPhong 
-                ? `Phòng ${phieu.phong.maPhong} vẫn còn trống và đủ điều kiện nhận cọc.`
-                : `Phòng ${phieu.phong.maPhong} hiện tại đã có người ở, không thể xác nhận thuê.`
+                ? `Phòng ${phieu.phong?.maPhong || ''} vẫn còn trống và đủ điều kiện nhận cọc.`
+                : `Phòng ${phieu.phong?.maPhong || ''} hiện tại đã có người ở hoặc đang giữ chỗ, không thể xác nhận thuê.`
               }
             </p>
           </div>

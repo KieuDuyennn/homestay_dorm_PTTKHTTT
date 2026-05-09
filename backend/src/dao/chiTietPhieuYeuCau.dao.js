@@ -1,8 +1,8 @@
 const supabase = require('../config/supabase');
 
-class ChiTietPhieuYeuCau_DAO {
+class chiTietPhieuYeuCauDao {
   static async insertChiTietMany(items) {
-    console.log('=== ChiTietPhieuYeuCau_DAO.insertChiTietMany ===');
+    console.log('=== chiTietPhieuYeuCauDao.insertChiTietMany ===');
     console.log('Items nhận:', items);
     
     if (!Array.isArray(items) || items.length === 0) {
@@ -18,7 +18,7 @@ class ChiTietPhieuYeuCau_DAO {
       .select();
 
     if (error) {
-      console.error('Lỗi ChiTietPhieuYeuCau_DAO.insertChiTietMany:', error);
+      console.error('Lỗi chiTietPhieuYeuCauDao.insertChiTietMany:', error);
       return { success: false, error };
     }
     console.log('Insert thành công! Data trả về:', data);
@@ -26,4 +26,4 @@ class ChiTietPhieuYeuCau_DAO {
   }
 }
 
-module.exports = ChiTietPhieuYeuCau_DAO;
+module.exports = chiTietPhieuYeuCauDao;

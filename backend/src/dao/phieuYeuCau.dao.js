@@ -1,6 +1,6 @@
 const supabase = require('../config/supabase');
 
-class PhieuYeuCau_DAO {
+class phieuYeuCauDao {
   static async insert(phieuData) {
     const { data, error } = await supabase
       .from('phieu_yeu_cau_xem_phong')
@@ -8,7 +8,7 @@ class PhieuYeuCau_DAO {
       .select();
 
     if (error) {
-      console.error('Lỗi PhieuYeuCau_DAO.insert:', error);
+      console.error('Lỗi phieuYeuCauDao.insert:', error);
       return { success: false, error };
     }
 
@@ -24,7 +24,7 @@ class PhieuYeuCau_DAO {
       .single();
 
     if (error) {
-      console.error('Lỗi PhieuYeuCau_DAO.updateLichHen:', error);
+      console.error('Lỗi phieuYeuCauDao.updateLichHen:', error);
       return { success: false, error };
     }
     return { success: true, data };
@@ -43,7 +43,7 @@ class PhieuYeuCau_DAO {
       .not('trangthai', 'eq', 'Đã huỷ');
 
     if (error) {
-      console.error('Lỗi PhieuYeuCau_DAO.layGioBanTheoNgay:', error);
+      console.error('Lỗi phieuYeuCauDao.layGioBanTheoNgay:', error);
       return { success: false, error };
     }
 
@@ -63,7 +63,7 @@ class PhieuYeuCau_DAO {
       .single();
 
     if (error) {
-      console.error('Lỗi PhieuYeuCau_DAO.getChiTiet:', error);
+      console.error('Lỗi phieuYeuCauDao.getChiTiet:', error);
       return { success: false, error };
     }
 
@@ -74,7 +74,7 @@ class PhieuYeuCau_DAO {
       .eq('mayc', mayc);
 
     if (chiTietError) {
-      console.error('Lỗi PhieuYeuCau_DAO.getChiTiet chi_tiet:', chiTietError);
+      console.error('Lỗi phieuYeuCauDao.getChiTiet chi_tiet:', chiTietError);
       return { success: true, data: { ...data, chi_tiet: [] }, warning: chiTietError };
     }
 
@@ -91,7 +91,7 @@ class PhieuYeuCau_DAO {
       .select();
 
     if (error) {
-      console.error('Lỗi PhieuYeuCau_DAO.updateTrangThaiChot:', error);
+      console.error('Lỗi phieuYeuCauDao.updateTrangThaiChot:', error);
       return { success: false, error };
     }
     return { success: true, data };
@@ -107,7 +107,7 @@ class PhieuYeuCau_DAO {
       .select();
 
     if (error) {
-      console.error('Lỗi PhieuYeuCau_DAO.deleteChiTiet:', error);
+      console.error('Lỗi phieuYeuCauDao.deleteChiTiet:', error);
       return { success: false, error };
     }
     return { success: true, data };
@@ -121,7 +121,7 @@ class PhieuYeuCau_DAO {
       .select();
 
     if (error) {
-      console.error('Lỗi PhieuYeuCau_DAO.deletePhieu:', error);
+      console.error('Lỗi phieuYeuCauDao.deletePhieu:', error);
       return { success: false, error };
     }
     return { success: true, data };
@@ -135,7 +135,7 @@ class PhieuYeuCau_DAO {
       .select();
 
     if (error) {
-      console.error('Lỗi PhieuYeuCau_DAO.updateTrangThai:', error);
+      console.error('Lỗi phieuYeuCauDao.updateTrangThai:', error);
       return { success: false, error };
     }
     return { success: true, data };
@@ -159,7 +159,7 @@ class PhieuYeuCau_DAO {
 
     const { data, error } = await query;
     if (error) {
-      console.error('Lỗi PhieuYeuCau_DAO.getDanhSach:', error);
+      console.error('Lỗi phieuYeuCauDao.getDanhSach:', error);
       return { success: false, error };
     }
 
@@ -175,6 +175,67 @@ class PhieuYeuCau_DAO {
 
     return { success: true, data: result };
   }
+
+  // Method: Lấy danh sách PYC trạng thái 'Cần xác nhận', có tìm kiếm keyword
+  static async selectCanXacNhan(keyword) {
+    let query = supabase
+      .from('phieu_yeu_cau_xem_phong')
+      .select(`
+        mayc, trangthai, thoigiandukienvao, thoihanthue,
+        loaihinhthue, loaiphong, lydohuy, ngayguiyeucau,
+        khach_hang (makh, hoten, sdt, loaikhachhang)
+      `)
+      .eq('trangthai', 'Cần xác nhận')
+      .order('ngayguiyeucau', { ascending: false });
+
+    const { data, error } = await query;
+    if (error) {
+      console.error('Lỗi phieuYeuCauDao.selectCanXacNhan:', error);
+      return { success: false, error };
+    }
+
+    let result = data || [];
+    if (keyword) {
+      const kw = keyword.toLowerCase();
+      result = result.filter(p =>
+        p.khach_hang?.hoten?.toLowerCase().includes(kw) ||
+        p.khach_hang?.sdt?.includes(kw)
+      );
+    }
+    return { success: true, data: result };
+  }
+
+  // Method: Lưu lý do hủy + chuyển trạng thái 'Hủy thuê' trong 1 query
+  static async updateLyDoHuy(mayc, lydohuy) {
+    const { data, error } = await supabase
+      .from('phieu_yeu_cau_xem_phong')
+      .update({ lydohuy, trangthai: 'Hủy thuê' })
+      .eq('mayc', mayc)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Lỗi phieuYeuCauDao.updateLyDoHuy:', error);
+      return { success: false, error };
+    }
+    return { success: true, data };
+  }
+
+  // Method: Cập nhật thoigiandukienvao trong phiếu
+  static async updateThoiGianVao(mayc, thoigiandukienvao) {
+    const { data, error } = await supabase
+      .from('phieu_yeu_cau_xem_phong')
+      .update({ thoigiandukienvao })
+      .eq('mayc', mayc)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Lỗi phieuYeuCauDao.updateThoiGianVao:', error);
+      return { success: false, error };
+    }
+    return { success: true, data };
+  }
 }
 
-module.exports = PhieuYeuCau_DAO;
+module.exports = phieuYeuCauDao;
