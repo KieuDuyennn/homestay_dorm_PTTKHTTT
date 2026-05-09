@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainLayout from '../components/MainLayout';
-import PhieuYeuCauXemPhong_BUS from '../data/mockPhieuYeuCau';
+import api from '../services/api';
 
 const DanhSachPYCXemPhong = () => {
   const [user, setUser] = useState(null);
@@ -15,9 +15,30 @@ const DanhSachPYCXemPhong = () => {
       navigate('/');
     } else {
       setUser(JSON.parse(savedUser));
-      setDsPhieu(PhieuYeuCauXemPhong_BUS.layDanhSachPYC());
+      fetchData();
     }
   }, [navigate]);
+
+  const fetchData = async () => {
+    try {
+      // Dùng endpoint danh-sach để lấy tất cả các trạng thái (Cần xác nhận, Hoàn tất, Hủy thuê,...)
+      const res = await api.get('/phieu-yeu-cau/danh-sach');
+      if (res.data.success) {
+        // Map data từ backend về định dạng frontend cần hiển thị
+        const mappedData = res.data.data.map(p => ({
+          maHoSo: p.mayc,
+          khachHang: {
+            hoTen: p.khach_hang?.hoten || 'Khách hàng',
+            sdt: p.khach_hang?.sdt || 'Không có SĐT'
+          },
+          trangThai: p.trangthai
+        }));
+        setDsPhieu(mappedData);
+      }
+    } catch (error) {
+      console.error('Lỗi khi tải danh sách:', error);
+    }
+  };
 
   const filteredPhieu = dsPhieu.filter(p => {
     return p.maHoSo.toLowerCase().includes(keyword.toLowerCase()) || 

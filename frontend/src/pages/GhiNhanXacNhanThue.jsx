@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import MainLayout from '../components/MainLayout';
-import PhieuYeuCauXemPhong_BUS from '../data/mockPhieuYeuCau';
+import api from '../services/api';
 
 const noiQuy = [
   'Liên hệ và gặp trực tiếp chủ trọ khi cần sửa chữa hoặc gặp vấn đề.',
@@ -26,16 +26,39 @@ const GhiNhanXacNhanThue = () => {
     const savedUser = localStorage.getItem('user');
     if (!savedUser) { navigate('/'); return; }
     setUser(JSON.parse(savedUser));
-    const p = PhieuYeuCauXemPhong_BUS.layChiTietPYC(id);
-    if (!p) { navigate('/phieu-yeu-cau'); return; }
-    setPhieu(p);
+    
+    fetchChiTiet();
   }, [id, navigate]);
 
-  const handleXacNhan = () => {
+  const fetchChiTiet = async () => {
+    try {
+      // API noi-quy cũng trả về data giống hệt chi tiết
+      const res = await api.get(`/phieu-yeu-cau/noi-quy/${id}`);
+      if (res.data.success) {
+        setPhieu(res.data.data);
+      } else {
+        navigate('/phieu-yeu-cau');
+      }
+    } catch (error) {
+      console.error('Lỗi khi tải chi tiết:', error);
+      navigate('/phieu-yeu-cau');
+    }
+  };
+
+  const handleXacNhan = async () => {
     if (!dongY) return;
-    const updated = { ...phieu, trangThai: 'Hoàn tất' };
-    PhieuYeuCauXemPhong_BUS.capNhatPYC(updated);
-    navigate('/phieu-yeu-cau');
+    try {
+      const res = await api.post(`/phieu-yeu-cau/${id}/xac-nhan-thue`, { dongYNoiQuy: true });
+      if (res.data.success) {
+        alert(res.data.message || 'Xác nhận thành công!');
+        navigate('/phieu-yeu-cau');
+      } else {
+        alert(res.data.message || 'Lỗi xác nhận thuê');
+      }
+    } catch (error) {
+      console.error('Lỗi xác nhận thuê:', error);
+      alert('Lỗi xác nhận thuê');
+    }
   };
 
   if (!user || !phieu) return null;
@@ -62,31 +85,31 @@ const GhiNhanXacNhanThue = () => {
         <div className="grid grid-cols-2 gap-y-6 gap-x-16">
           <div>
             <p className="text-[12px] text-gray-400 mb-1">Họ và tên</p>
-            <p className="text-[15px] font-bold text-navy">{phieu.khachHang.hoTen}</p>
+            <p className="text-[15px] font-bold text-navy">{phieu.khachHang?.hoTen}</p>
           </div>
           <div>
             <p className="text-[12px] text-gray-400 mb-1">Số điện thoại</p>
-            <p className="text-[15px] font-bold text-navy">{phieu.khachHang.sdt}</p>
+            <p className="text-[15px] font-bold text-navy">{phieu.khachHang?.sdt}</p>
           </div>
           <div>
             <p className="text-[12px] text-gray-400 mb-1">Giới tính</p>
-            <p className="text-[15px] font-bold text-navy">{phieu.khachHang.gioiTinh}</p>
+            <p className="text-[15px] font-bold text-navy">{phieu.khachHang?.gioiTinh}</p>
           </div>
           <div>
             <p className="text-[12px] text-gray-400 mb-1">Quốc tịch</p>
-            <p className="text-[15px] font-bold text-navy">{phieu.khachHang.quocTich}</p>
+            <p className="text-[15px] font-bold text-navy">{phieu.khachHang?.quocTich}</p>
           </div>
           <div>
             <p className="text-[12px] text-gray-400 mb-1">Số CCCD/CMND</p>
-            <p className="text-[15px] font-bold text-navy">{phieu.khachHang.cccd}</p>
+            <p className="text-[15px] font-bold text-navy">{phieu.khachHang?.cccd}</p>
           </div>
           <div>
             <p className="text-[12px] text-gray-400 mb-1">Tình trạng tài chính</p>
-            <p className="text-[15px] font-bold text-navy">{phieu.khachHang.tinhTrangTaiChinh || 'Truyền thông'}</p>
+            <p className="text-[15px] font-bold text-navy">{phieu.khachHang?.tinhTrangTaiChinh || 'Truyền thống'}</p>
           </div>
           <div>
             <p className="text-[12px] text-gray-400 mb-1">Số lượng dự kiến</p>
-            <p className="text-[15px] font-bold text-navy">{phieu.khachHang.soNguoiDuKien || 1} người</p>
+            <p className="text-[15px] font-bold text-navy">{phieu.khachHang?.soNguoiDuKien || 1} người</p>
           </div>
           <div></div>
           <div>
@@ -110,8 +133,9 @@ const GhiNhanXacNhanThue = () => {
             ['Loại hình thuê:', phieu.loaiHinhThue],
             ['Mã chi nhánh:', phieu.phong?.maChiNhanh],
             ['Mã phòng:', phieu.phong?.maPhong, true],
-            ['Mã giường:', phieu.phong?.dsGiuong?.[0]?.maGiuong || '-'],
+            ['Mã giường:', phieu.dsGiuong?.[0]?.maGiuong || '-'],
             ['Loại phòng:', phieu.phong?.loaiPhong],
+
           ].map(([label, value, isPink], idx) => (
             <div key={idx} className="flex items-center justify-between py-1">
               <span className="text-[14px] text-gray-500 font-medium">{label}</span>

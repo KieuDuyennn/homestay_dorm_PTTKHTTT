@@ -51,9 +51,9 @@ CREATE TABLE PHONG (
     MaPhong         VARCHAR(10)     PRIMARY KEY,
     SoLuongGiuong   INT             NOT NULL CHECK (SoLuongGiuong > 0),
     GioiTinh        VARCHAR(10)     NOT NULL CHECK (GioiTinh IN ('Nam', 'Nữ', 'Hỗn hợp')),
-    LoaiHinh        VARCHAR(50)     NOT NULL CHECK (LoaiHinh IN ('Ở ghép', 'Nguyên phòng')),
     TienThueThang   NUMERIC(12,0)   NOT NULL CHECK (TienThueThang > 0),
-    TrangThai       VARCHAR(30)     NOT NULL CHECK (TrangThai IN ('Chưa sử dụng', 'Đang sử dụng', 'Đang giữ chỗ')),
+    TrangThai       VARCHAR(30)     NOT NULL CHECK (TrangThai IN ('Còn giường trống', 'Hết giường', 'Đang giữ chỗ')),
+    SoGiuongTrong   INT             NOT NULL DEFAULT 0,
     MaCN            VARCHAR(10)     NOT NULL REFERENCES CHI_NHANH(MaCN)
 );
 
@@ -67,6 +67,42 @@ CREATE TABLE GIUONG (
     TinhTrang   VARCHAR(20)     NOT NULL CHECK (TinhTrang IN ('Chưa sử dụng', 'Đang sử dụng', 'Đang giữ chỗ')),
     PRIMARY KEY (MaGiuong, MaPhong)
 );
+
+-- ============================================================
+-- TRIGGER: Tự động cập nhật SoGiuongTrong và TrangThai PHONG
+-- ============================================================
+CREATE OR REPLACE FUNCTION fn_update_so_giuong_trong()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Cập nhật SoGiuongTrong: tổng số giường 'Chưa sử dụng' + 'Đang giữ chỗ'
+    UPDATE PHONG
+    SET SoGiuongTrong = (
+        SELECT COUNT(*)
+        FROM GIUONG
+        WHERE MaPhong = COALESCE(NEW.MaPhong, OLD.MaPhong)
+          AND TinhTrang IN ('Chưa sử dụng', 'Đang giữ chỗ')
+    )
+    WHERE MaPhong = COALESCE(NEW.MaPhong, OLD.MaPhong);
+
+    -- Tự động cập nhật TrangThai của PHONG dựa trên SoGiuongTrong
+    -- Nếu SoGiuongTrong > 0 -> 'Còn giường trống', nếu = 0 -> 'Hết giường'
+    -- (Trừ trường hợp phòng đang ở trạng thái 'Đang giữ chỗ' toàn bộ - tùy logic UC)
+    UPDATE PHONG
+    SET TrangThai = CASE 
+        WHEN SoGiuongTrong > 0 THEN 'Còn giường trống'
+        ELSE 'Hết giường'
+    END
+    WHERE MaPhong = COALESCE(NEW.MaPhong, OLD.MaPhong)
+      AND TrangThai != 'Đang giữ chỗ'; -- Giữ nguyên nếu thủ công set là Đang giữ chỗ
+
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_update_giuong_trong
+AFTER INSERT OR UPDATE OR DELETE ON GIUONG
+FOR EACH ROW
+EXECUTE FUNCTION fn_update_so_giuong_trong();
 
 -- ============================================================
 -- 4. DỊCH VỤ
@@ -402,18 +438,18 @@ INSERT INTO CHI_NHANH (MaCN, TenCN, DiaChi, SoLuongPhong, NoiQuy, QuyDinhCoc) VA
 -- ============================================================
 -- PHÒNG
 -- ============================================================
-INSERT INTO PHONG (MaPhong, SoLuongGiuong, GioiTinh, LoaiHinh, TienThueThang, TrangThai, MaCN) VALUES
-('P001', 4, 'Nam',     'Ở ghép',        1200000, 'Đang sử dụng', 'CN01'),
-('P002', 4, 'Nữ',      'Ở ghép',        1200000, 'Chưa sử dụng', 'CN01'),
-('P003', 1, 'Hỗn hợp', 'Nguyên phòng',  4500000, 'Đang sử dụng', 'CN01'),
-('P004', 6, 'Nam',     'Ở ghép',        1000000, 'Chưa sử dụng', 'CN02'),
-('P005', 4, 'Nữ',      'Ở ghép',        1100000, 'Đang sử dụng', 'CN02'),
-('P006', 1, 'Hỗn hợp', 'Nguyên phòng',  5000000, 'Chưa sử dụng', 'CN02'),
-('P007', 2, 'Nữ',      'Ở ghép',        1300000, 'Đang sử dụng', 'CN03'),
-('P008', 1, 'Hỗn hợp', 'Nguyên phòng',  3800000, 'Chưa sử dụng', 'CN03'),
-('P009', 4, 'Nam',     'Ở ghép',        1050000, 'Chưa sử dụng', 'CN03'),
-('P010', 1, 'Hỗn hợp', 'Nguyên phòng',  6500000, 'Đang sử dụng', 'CN04'),
-('P011', 2, 'Nữ',      'Ở ghép',        1500000, 'Đang giữ chỗ', 'CN01');
+INSERT INTO PHONG (MaPhong, SoLuongGiuong, GioiTinh, TienThueThang, TrangThai, SoGiuongTrong, MaCN) VALUES
+('P001', 4, 'Nam',     1200000, 'Hết giường',       0, 'CN01'),
+('P002', 4, 'Nữ',      1200000, 'Còn giường trống', 4, 'CN01'),
+('P003', 1, 'Hỗn hợp', 4500000, 'Hết giường',       0, 'CN01'),
+('P004', 2, 'Nam',     1000000, 'Còn giường trống', 2, 'CN02'),
+('P005', 4, 'Nữ',      1100000, 'Hết giường',       0, 'CN02'),
+('P006', 1, 'Hỗn hợp', 5000000, 'Còn giường trống', 1, 'CN02'),
+('P007', 2, 'Nữ',      1300000, 'Hết giường',       0, 'CN03'),
+('P008', 1, 'Hỗn hợp', 3800000, 'Còn giường trống', 1, 'CN03'),
+('P009', 4, 'Nam',     1050000, 'Còn giường trống', 4, 'CN03'),
+('P010', 1, 'Hỗn hợp', 6500000, 'Hết giường',       0, 'CN04'),
+('P011', 2, 'Nữ',      1500000, 'Đang giữ chỗ',     2, 'CN01');
 
 -- ============================================================
 -- GIƯỜNG
@@ -438,6 +474,10 @@ INSERT INTO GIUONG (MaGiuong, MaPhong, GiaGiuong, TinhTrang) VALUES
 ('G01', 'P007', 1300000, 'Đang sử dụng'),
 ('G02', 'P007', 1300000, 'Đang sử dụng'),
 ('G01', 'P008', 3800000, 'Chưa sử dụng'),
+('G01', 'P009', 1050000, 'Chưa sử dụng'),
+('G02', 'P009', 1050000, 'Chưa sử dụng'),
+('G03', 'P009', 1050000, 'Chưa sử dụng'),
+('G04', 'P009', 1050000, 'Chưa sử dụng'),
 ('G01', 'P010', 6500000, 'Đang sử dụng'),
 ('G01', 'P011', 1500000, 'Đang giữ chỗ'),
 ('G02', 'P011', 1500000, 'Đang giữ chỗ');
