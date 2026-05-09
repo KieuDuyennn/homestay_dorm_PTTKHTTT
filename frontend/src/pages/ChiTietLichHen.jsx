@@ -65,7 +65,7 @@ const ChiTietLichHen = () => {
 
       const allItems = data.chi_tiet || [];
       const isNguyenCanRoom = Boolean(item.isNguyenCanRoom);
-      const selectedRoomKey = isNguyenCanRoom ? item.maphong : itemKey;
+      const selectedRoomKey = item.roomId || itemKey;
       const selectedItems = isNguyenCanRoom
         ? allItems.filter(it => (it.maphong || it.giuong?.phong?.maphong) === item.maphong)
         : [{ maphong: item.maphong, magiuong: item.magiuong }];
@@ -201,6 +201,7 @@ const ChiTietLichHen = () => {
       const roomId = `${maphong}|${macn}`;
       if (!map[roomId]) {
         map[roomId] = { 
+          roomId,
           phong: phong, 
           macn: macn, 
           maphong: maphong, 
@@ -322,7 +323,7 @@ const ChiTietLichHen = () => {
                 if (isNguyenCan(loai)) {
                   const groups = groupByRoom(dsPhong);
                   return groups.map((g, idx) => {
-                    const itemKey = g.roomId || `${g.maphong}|${g.giuongs[0] || 'null'}`;
+                    const itemKey = g.roomId;
                     const isCot = chotItems[itemKey];
                     return (
                       <div key={idx} className="relative bg-pink-50/30 border border-pink-100 rounded-2xl p-6 hover:shadow-lg transition-shadow">
@@ -348,7 +349,7 @@ const ChiTietLichHen = () => {
                         </div>
                         <div className="absolute top-4 right-4">
                           <button
-                            onClick={() => handleDaChon(itemKey, { maphong: g.maphong, macn: g.macn, giuongs: g.giuongs, isNguyenCanRoom: true })}
+                            onClick={() => handleDaChon(itemKey, { maphong: g.maphong, macn: g.macn, roomId: g.roomId, giuongs: g.giuongs, isNguyenCanRoom: true })}
                             disabled={isUpdating || isCot}
                             className={`inline-flex items-center gap-2 text-white text-[12px] font-semibold px-4 py-2 rounded-full transition-all ${
                               isCot
@@ -367,7 +368,7 @@ const ChiTietLichHen = () => {
                 if (isOgep(loai)) {
                   const groups = groupByRoom(dsPhong);
                   return groups.map((g, idx) => {
-                    const itemKey = g.roomId || `${g.maphong}|${g.giuongs[0] || 'null'}`;
+                    const itemKey = g.roomId;
                     const isCot = chotItems[itemKey];
                     return (
                       <div key={idx} className="relative bg-pink-50/30 border border-pink-100 rounded-2xl p-6 hover:shadow-lg transition-shadow">
@@ -393,7 +394,7 @@ const ChiTietLichHen = () => {
                         </div>
                         <div className="absolute top-4 right-4">
                           <button
-                            onClick={() => handleDaChon(itemKey, { maphong: g.maphong, magiuong: g.giuongs[0] })}
+                            onClick={() => handleDaChon(itemKey, { maphong: g.maphong, roomId: g.roomId, magiuong: g.giuongs[0] })}
                             disabled={isUpdating || isCot}
                             className={`inline-flex items-center gap-2 text-white text-[12px] font-semibold px-4 py-2 rounded-full transition-all ${
                               isCot
