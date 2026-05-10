@@ -1,7 +1,6 @@
 const khachHangService = require('./khachHang.service');
 const phieuYeuCauDao = require('../dao/phieuYeuCau.dao');
 const chiTietPhieuYeuCauService = require('./chiTietPhieuYeuCau.service');
-const giuongDao = require('../dao/giuong.dao');
 // PHẦN CỦA DUYÊN: Import Service (Service gọi Service, không gọi DAO khác tên)
 const phongService = require('./phong.service');
 const giuongService = require('./giuong.service');
@@ -126,7 +125,7 @@ class phieuYeuCauService {
               });
             } else {
               // Thuê nguyên căn: magiuong = null → fetch all beds in this room
-              const bedsResult = await giuongDao.selectByMaPhong(maphong);
+              const bedsResult = await giuongService.layDanhSachGiuongCuaPhong(maphong);
 
               if (!bedsResult.success) {
                 console.error(`Lỗi lấy danh sách giường cho phòng ${maphong}:`, bedsResult.error);
