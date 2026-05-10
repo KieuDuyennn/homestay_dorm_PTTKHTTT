@@ -170,18 +170,6 @@ const DanhSachLichHen = () => {
           ) : (
             filteredLichHen.map((item) => {
               const { day, month, time } = formatDate(item.thoigianhenxem);
-              
-              // Xác định badge màu dựa trên thời gian
-              let badgeText = "SẮP ĐẾN";
-              let badgeColor = "bg-pink-50 text-primary border-pink-100";
-              
-              if (item.thoigianhenxem) {
-                const henDate = new Date(item.thoigianhenxem);
-                if (henDate < new Date()) {
-                  badgeText = "ĐÃ XEM";
-                  badgeColor = "bg-green-50 text-green-600 border-green-100";
-                }
-              }
 
               return (
                 <div key={item.mayc} className="bg-white rounded-2xl border border-gray-100 p-6 flex flex-col md:flex-row gap-6 shadow-sm hover:shadow-md transition-shadow">
@@ -197,9 +185,6 @@ const DanhSachLichHen = () => {
                   {/* Right: Details */}
                   <div className="flex-1 flex flex-col gap-3">
                     <div className="flex flex-col gap-1 items-start">
-                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${badgeColor}`}>
-                        {badgeText}
-                      </span>
                       <h3 className="text-[20px] font-bold text-navy mt-1">{item.khach_hang?.hoten || 'Khách hàng mới'}</h3>
                     </div>
 
