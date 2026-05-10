@@ -122,17 +122,6 @@ router.patch('/update-trang-thai-chot', async (req, res, next) => {
   }
 });
 
-// DELETE /api/phieu-yeu-cau/chi-tiet/:mayc/:maphong/:magiuong - Xóa chi tiết phiếu
-router.delete('/chi-tiet/:mayc/:maphong/:magiuong', async (req, res, next) => {
-  try {
-    const { mayc, maphong, magiuong } = req.params;
-    const result = await chiTietPhieuYeuCauService.deleteChiTiet(mayc, maphong, magiuong);
-    if (!result.success) return res.status(500).json(result);
-    res.json(result);
-  } catch (error) {
-    next(error);
-  }
-});
 
 // DELETE /api/phieu-yeu-cau/huy-lich/:mayc - Xóa toàn bộ lịch hẹn và chi tiết
 router.delete('/huy-lich/:mayc', async (req, res, next) => {

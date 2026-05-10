@@ -19,11 +19,11 @@ class chiTietPhieuYeuCauService {
     }
   }
 
-  static async deleteChiTiet(mayc, maphong, magiuong) {
+  static async deleteAllByMaYC(mayc) {
     try {
-      return await chiTietPhieuYeuCauDao.deleteChiTiet(mayc, maphong, magiuong);
+      return await chiTietPhieuYeuCauDao.deleteAllByMaYC(mayc);
     } catch (error) {
-      console.error('Lỗi chiTietPhieuYeuCauService.deleteChiTiet:', error);
+      console.error('Lỗi chiTietPhieuYeuCauService.deleteAllByMaYC:', error);
       return { success: false, error };
     }
   }

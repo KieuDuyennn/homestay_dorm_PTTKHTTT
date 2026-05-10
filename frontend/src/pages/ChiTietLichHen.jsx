@@ -77,14 +77,6 @@ const ChiTietLichHen = () => {
         });
       }
 
-      // 2. Xóa các item không được chốt
-      const itemsToDelete = allItems.filter(it => {
-        return getRoomKey(it) !== selectedRoomKey;
-      });
-
-      for (const deleteItem of itemsToDelete) {
-        await chiTietPhieuYeuCauService.deleteChiTiet(id, deleteItem.maphong, deleteItem.magiuong);
-      }
 
       // 3. Update state UI - mark này là chốt
       setChotItems({ [selectedRoomKey]: true });

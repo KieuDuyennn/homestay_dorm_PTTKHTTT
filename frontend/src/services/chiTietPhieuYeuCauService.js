@@ -24,15 +24,5 @@ export const chiTietPhieuYeuCauService = {
       throw error;
     }
   },
-
-  // Xóa một dòng chi tiết khỏi phiếu
-  deleteChiTiet: async (mayc, maphong, magiuong) => {
-    try {
-      const response = await axios.delete(`${API_URL}/phieu-yeu-cau/chi-tiet/${mayc}/${maphong}/${magiuong}`);
-      return response.data;
-    } catch (error) {
-      console.error('Lỗi chiTietPhieuYeuCauService.deleteChiTiet:', error);
-      throw error;
-    }
   }
 };

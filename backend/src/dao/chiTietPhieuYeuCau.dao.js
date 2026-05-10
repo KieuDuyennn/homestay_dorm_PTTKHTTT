@@ -63,19 +63,15 @@ class chiTietPhieuYeuCauDao {
     return { success: true, data };
   }
 
-  static async deleteChiTiet(mayc, maphong, magiuong) {
-    let query = supabase
+  static async deleteAllByMaYC(mayc) {
+    const { data, error } = await supabase
       .from('chi_tiet_phieu_yeu_cau')
       .delete()
-      .eq('mayc', mayc);
-
-    if (maphong) query = query.eq('maphong', maphong);
-    if (magiuong) query = query.eq('magiuong', magiuong);
-
-    const { data, error } = await query.select();
+      .eq('mayc', mayc)
+      .select();
 
     if (error) {
-      console.error('Lỗi chiTietPhieuYeuCauDao.deleteChiTiet:', error);
+      console.error('Lỗi chiTietPhieuYeuCauDao.deleteAllByMaYC:', error);
       return { success: false, error };
     }
     return { success: true, data };

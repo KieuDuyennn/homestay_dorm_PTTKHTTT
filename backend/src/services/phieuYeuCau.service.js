@@ -198,8 +198,8 @@ class phieuYeuCauService {
 
   static async huyLich(mayc) {
     try {
-      // Xóa chi tiết phiếu trước (sử dụng Service chuyên biệt)
-      const { success: delCTSuccess, error: delCTError } = await chiTietPhieuYeuCauService.deleteChiTiet(mayc, null, null);
+      // Xóa tất cả chi tiết phiếu trước (sử dụng Service chuyên biệt)
+      const { success: delCTSuccess, error: delCTError } = await chiTietPhieuYeuCauService.deleteAllByMaYC(mayc);
       
       if (!delCTSuccess && delCTError) {
         console.error('Lỗi xóa chi tiết trong huyLich:', delCTError);
