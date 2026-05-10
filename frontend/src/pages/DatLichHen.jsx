@@ -112,11 +112,16 @@ export default function DatLichHen() {
 
         const formData = JSON.parse(formDataStr);
         const chiTiet = selectedRooms.flatMap(r => {
-          const dsMagiuong = Array.isArray(r.dsMagiuong) && r.dsMagiuong.length > 0
+          let dsMagiuong = Array.isArray(r.dsMagiuong) && r.dsMagiuong.length > 0
             ? r.dsMagiuong
             : (Array.isArray(r.dsGiuong) && r.dsGiuong.length > 0
               ? r.dsGiuong.map(g => g.magiuong).filter(Boolean)
               : [r.magiuong].filter(Boolean));
+
+          // KHẮC PHỤC: Nếu Thuê nguyên căn mà không có giường nào, gửi ít nhất 1 dòng magiuong: null
+          if (formData.HinhThucThue === 'Thuê nguyên căn' && dsMagiuong.length === 0) {
+            dsMagiuong = [null];
+          }
 
           return dsMagiuong.map(magiuong => ({
             maphong: r.maphong || null,
@@ -127,7 +132,13 @@ export default function DatLichHen() {
 
         console.log('=== Tạo phiếu từ DatLichHen ===');
         console.log('FormData:', formData);
-        console.log('ChiTiet:', chiTiet);
+        console.log('ChiTiet final:', chiTiet);
+
+        if (chiTiet.length === 0) {
+          alert('Không tìm thấy thông tin phòng/giường để đặt lịch. Vui lòng chọn lại phòng.');
+          setIsSubmitting(false);
+          return;
+        }
 
         // Create phieu với formData + ChiTiet
         const payload = {

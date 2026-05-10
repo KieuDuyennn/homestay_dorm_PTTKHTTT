@@ -48,8 +48,10 @@ class phieuYeuCauDao {
     }
 
     const gioBan = (data || []).map(p => {
-      const date = new Date(p.thoigianhenxem);
-      // Giả sử server có thể ở timezone khác, ta lấy UTC + 7 để ra giờ VN
+      // Đảm bảo parse như giờ UTC (bù đắp việc DB bỏ mất chữ Z)
+      const dateStr = p.thoigianhenxem.endsWith('Z') ? p.thoigianhenxem : p.thoigianhenxem + 'Z';
+      const date = new Date(dateStr);
+      // Giờ UTC + 7 để ra giờ VN (tương ứng với label trong DatLichHen.jsx)
       const gio = (date.getUTCHours() + 7) % 24; 
       return { gio, mayc: p.mayc, trangthai: p.trangthai };
     });
