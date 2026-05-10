@@ -149,7 +149,7 @@ class phieuYeuCauDao {
       .select(`
         mayc, soluongdukien, loaihinhthue, mucgia,
         thoigiandukienvao, thoihanthue, thoigianhenxem,
-        gioitinh, ngayguiyeucau, trangthai, loaihinhthue,
+        ngayguiyeucau, trangthai,
         manv, makh,
         khach_hang (makh, hoten, sdt, email, gioitinh, socccd)
       `)

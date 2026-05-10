@@ -183,7 +183,6 @@ CREATE TABLE PHIEU_YEU_CAU_XEM_PHONG (
     ThoiHanThue         INT             CHECK (ThoiHanThue > 0),   -- số tháng
     ThoiGianHenXem      TIMESTAMP,
     YeuCauKhac          TEXT,
-    GioiTinh            VARCHAR(10)     CHECK (GioiTinh IN ('Nam', 'Nữ')),
     NgayGuiYeuCau       TIMESTAMP       NOT NULL DEFAULT NOW(),
     TrangThai           VARCHAR(30)     NOT NULL CHECK (TrangThai IN ('Đang hẹn xem', 'Cần xác nhận', 'Hủy thuê', 'Hoàn tất')),
     LyDoHuy             TEXT,
@@ -946,15 +945,15 @@ WHERE MaNhom = 'NH05';
 -- ============================================================
 INSERT INTO PHIEU_YEU_CAU_XEM_PHONG
     (MaYC, SoLuongDuKien, MucGia, ThoiGianDuKienVao, ThoiHanThue,
-     ThoiGianHenXem, GioiTinh, NgayGuiYeuCau, TrangThai, LoaiHinhThue, MaNV, MaKH) VALUES
-('YC01', 4,        1200000, '2025-01-01', 6,  '2024-12-20 10:00', 'Nam',     '2024-12-15 08:00', 'Hoàn tất', 'Ở ghép',        'NV02', 'KH01'),
-('YC02', 3,        1200000, '2025-01-05', 6,  '2024-12-22 14:00', 'Nữ',      '2024-12-16 09:00', 'Hoàn tất', 'Ở ghép',        'NV04', 'KH02'),
-('YC03', 1,  4500000, '2025-01-10', 12, '2024-12-25 09:30', 'Nữ', '2024-12-18 10:00', 'Hoàn tất', 'Nguyên phòng',  'NV02', 'KH03'),
-('YC04', 4,        1100000, '2025-02-01', 6,  '2025-01-15 11:00', 'Nữ',      '2025-01-10 07:00', 'Hoàn tất', 'Ở ghép',        'NV04', 'KH04'),
-('YC05', 2,        1300000, '2025-03-01', 3,  '2025-02-20 15:00', 'Nữ',      '2025-02-15 08:30', 'Hoàn tất', 'Ở ghép',        'NV08', 'KH06'),
-('YC06', 1, 6500000, '2025-03-15', 12, '2025-03-05 10:00', 'Nữ', '2025-03-01 09:00', 'Hoàn tất', 'Nguyên phòng',  'NV02', 'KH05'),
-('YC07', 1,       1200000, '2025-04-01', 6,  '2025-03-25 09:00', 'Nữ',      '2025-03-20 10:00', 'Cần xác nhận', 'Ở ghép',    'NV04', 'KH14'),
-('YC08', 1, 5000000, '2025-05-01', 6,  '2025-04-20 14:00', 'Nữ', '2025-04-15 11:00', 'Cần xác nhận', 'Nguyên phòng','NV08','KH08');
+     ThoiGianHenXem, NgayGuiYeuCau, TrangThai, LoaiHinhThue, MaNV, MaKH) VALUES
+('YC01', 4,        1200000, '2025-01-01', 6,  '2024-12-20 10:00',     '2024-12-15 08:00', 'Hoàn tất', 'Ở ghép',        'NV02', 'KH01'),
+('YC02', 3,        1200000, '2025-01-05', 6,  '2024-12-22 14:00',      '2024-12-16 09:00', 'Hoàn tất', 'Ở ghép',        'NV04', 'KH02'),
+('YC03', 1,  4500000, '2025-01-10', 12, '2024-12-25 09:30', '2024-12-18 10:00', 'Hoàn tất', 'Nguyên phòng',  'NV02', 'KH03'),
+('YC04', 4,        1100000, '2025-02-01', 6,  '2025-01-15 11:00',      '2025-01-10 07:00', 'Hoàn tất', 'Ở ghép',        'NV04', 'KH04'),
+('YC05', 2,        1300000, '2025-03-01', 3,  '2025-02-20 15:00',      '2025-02-15 08:30', 'Hoàn tất', 'Ở ghép',        'NV08', 'KH06'),
+('YC06', 1, 6500000, '2025-03-15', 12, '2025-03-05 10:00', '2025-03-01 09:00', 'Hoàn tất', 'Nguyên phòng',  'NV02', 'KH05'),
+('YC07', 1,       1200000, '2025-04-01', 6,  '2025-03-25 09:00',      '2025-03-20 10:00', 'Cần xác nhận', 'Ở ghép',    'NV04', 'KH14'),
+('YC08', 1, 5000000, '2025-05-01', 6,  '2025-04-20 14:00', '2025-04-15 11:00', 'Cần xác nhận', 'Nguyên phòng','NV08','KH08');
 
 -- ============================================================
 -- CHI TIẾT PHIẾU YÊU CẦU

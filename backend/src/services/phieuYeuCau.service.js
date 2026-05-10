@@ -62,7 +62,6 @@ class phieuYeuCauService {
         thoigiandukienvao: data.NgayDuKienDonVao || null,
         thoihanthue: parseInt(data.ThoiHanThue) || 6,
         yeucaukhac: data.YeuCauKhac || null,
-        gioitinh: data.GioiTinh || null,           // Lưu giới tính từ form
         thoigianhenxem: data.ThoiGianHenXem || null, // Lưu lịch hẹn khi đặt
         trangthai: 'Đang hẹn xem',  // Mới tạo: chờ đặt lịch xem phòng
         loaihinhthue: hinhThucDb,
