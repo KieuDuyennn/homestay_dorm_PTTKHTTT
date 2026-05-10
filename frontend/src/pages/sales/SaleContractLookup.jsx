@@ -71,19 +71,14 @@ export function SaleContractLookup() {
     <MainLayout>
       <div className="p-6 max-w-4xl mx-auto space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Tra cứu hợp đồng/phiếu đặt cọc</h1>
+          <h1 className="text-3xl font-bold">Tra cứu hợp đồng</h1>
           <p className="text-gray-500 mt-2">
-            Nhập thông tin khách hàng để tìm kiếm hợp đồng
+            Nhập thông tin để tìm kiếm hợp đồng
           </p>
         </div>
 
         <div className="border rounded-lg bg-white shadow-sm p-6">
-          <div className="mb-4">
-            <h3 className="font-semibold leading-none tracking-tight text-lg">Thông tin tra cứu</h3>
-            <p className="text-sm text-gray-500 mt-1">
-              Nhập tên, số điện thoại hoặc mã hợp đồng
-            </p>
-          </div>
+          
           <div className="space-y-4">
             <div className="space-y-2">
               <label htmlFor="search" className="text-sm font-medium leading-none">Tìm kiếm</label>
