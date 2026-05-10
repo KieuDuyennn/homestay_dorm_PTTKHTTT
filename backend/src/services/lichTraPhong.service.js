@@ -4,14 +4,7 @@ const HopDong_DAO = require('../dao/hopDong.dao');
 async function DangKyLichTraPhong(maHD, ngay, gio, maNV) {
   try {
 
-    // 1. Kiểm tra trùng lịch
-    const existed = await LichTraPhong_DAO.kiemTraTrungLich(ngay, gio);
-
-    if (existed) {
-      throw new Error('Khung giờ này đã có lịch trả phòng');
-    }
-
-    // 2. Tạo lịch trả phòng mới
+    // 1. Tạo lịch trả phòng mới
     const lichTraPhong = await LichTraPhong_DAO.taoMoi(
       ngay,
       gio,
@@ -39,6 +32,27 @@ async function DangKyLichTraPhong(maHD, ngay, gio, maNV) {
   }
 }
 
+async function LayKhungGioTrong(ngay) {
+  // 1. Định nghĩa các khung giờ có thể đăng ký
+  const allSlots = [
+    "08:00", "09:00", "10:00", "11:00",
+    "13:00", "14:00", "15:00", "16:00", "17:00"
+  ];
+
+  // 2. Lấy các lịch đã có trong ngày
+  const takenSchedules = await LichTraPhong_DAO.layLichTheoNgay(ngay);
+  const takenSlots = takenSchedules.map(item => {
+    // Supabase có thể trả về "HH:mm:ss", ta chỉ lấy "HH:mm"
+    return item.gio.substring(0, 5);
+  });
+
+  // 3. Lọc ra các khung giờ còn trống
+  const availableSlots = allSlots.filter(slot => !takenSlots.includes(slot));
+
+  return availableSlots;
+}
+
 module.exports = {
-  DangKyLichTraPhong
+  DangKyLichTraPhong,
+  LayKhungGioTrong
 };

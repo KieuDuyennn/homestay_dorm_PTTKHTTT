@@ -44,6 +44,19 @@ router.get('/contracts/:id', async (req, res, next) => {
   }
 });
 
+router.get('/available-slots', async (req, res, next) => {
+  try {
+    const { date } = req.query;
+    if (!date) {
+      return res.status(400).json({ message: "Thiếu thông tin ngày" });
+    }
+    const slots = await LichTraPhong_BUS.LayKhungGioTrong(date);
+    res.json(slots);
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Checkout report routes - Direct BUS mapping
 router.post('/return-schedules', authMiddleware, async (req, res) => {
   try {

@@ -11,7 +11,7 @@ export function SaleContractLookup() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const fetchContracts = async (query = "") => {
+  const HienThiDanhSachHopDong = async (query = "") => {
     setLoading(true);
     setError("");
     try {
@@ -32,33 +32,28 @@ export function SaleContractLookup() {
   };
 
   useEffect(() => {
-    fetchContracts("");
+    HienThiDanhSachHopDong("");
   }, []);
 
-  const handleSearch = () => {
-    fetchContracts(searchQuery);
+  const XuLyTimKiem = () => {
+    HienThiDanhSachHopDong(searchQuery);
   };
 
-  const handleScheduleReturn = (contract) => {
+  const XuLyDatLichTraPhong = (contract) => {
     if (contract) {
       navigate(`/sale/return-schedule/${contract.mahd}`);
     }
   };
 
-  const formatDate = (dateString) => {
+  const DinhDangNgay = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
     return date.toLocaleDateString('vi-VN');
   };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
-    }).format(amount || 0);
-  };
 
-  const getRoomInfo = (contract) => {
+
+  const LayThongTinPhong = (contract) => {
     try {
       const giuong = contract.hop_dong_giuong[0].giuong;
       return `${giuong.maphong}`;
@@ -90,13 +85,13 @@ export function SaleContractLookup() {
                     placeholder="Nhập tên, số điện thoại hoặc mã hợp đồng..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                    onKeyDown={(e) => e.key === 'Enter' && XuLyTimKiem()}
                     className="flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm pl-9 focus:outline-none focus:ring-2 focus:ring-[#e60076]"
                     disabled={loading}
                   />
                 </div>
                 <button
-                  onClick={handleSearch}
+                  onClick={XuLyTimKiem}
                   disabled={loading}
                   className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-gradient-to-r from-[#e60076] to-[#ec003f] text-white hover:opacity-90 h-10 px-4 py-2 disabled:opacity-50"
                 >
@@ -167,7 +162,7 @@ export function SaleContractLookup() {
                       <Home className="h-5 w-5 text-gray-500 mt-0.5" />
                       <div>
                         <p className="text-sm text-gray-500">Phòng</p>
-                        <p className="font-medium">{getRoomInfo(contract)}</p>
+                        <p className="font-medium">{LayThongTinPhong(contract)}</p>
                       </div>
                     </div>
 
@@ -176,7 +171,7 @@ export function SaleContractLookup() {
                       <div>
                         <p className="text-sm text-gray-500">Thời hạn hợp đồng</p>
                         <p className="font-medium">
-                          {formatDate(contract.ngaybatdau)} - {formatDate(contract.ngayketthuc || contract.ngaybatdau)}
+                          {DinhDangNgay(contract.ngaybatdau)} - {DinhDangNgay(contract.ngayketthuc || contract.ngaybatdau)}
                         </p>
                       </div>
                     </div>
@@ -192,7 +187,7 @@ export function SaleContractLookup() {
                       </div>
                       {contract.trangthai === 'Đã ký xác nhận' && (
                         <button
-                          onClick={() => handleScheduleReturn(contract)}
+                          onClick={() => XuLyDatLichTraPhong(contract)}
                           className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-gradient-to-r from-[#e60076] to-[#ec003f] text-white hover:opacity-90 h-10 px-4 py-2"
                         >
                           Chọn đặt lịch trả phòng

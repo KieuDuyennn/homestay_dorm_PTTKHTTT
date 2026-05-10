@@ -15,12 +15,14 @@ export function SaleReturnSchedule() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
-  const [selectedTime, setSelectedTime] = useState("10:00");
+  const [selectedTime, setSelectedTime] = useState("");
+  const [availableSlots, setAvailableSlots] = useState([]);
   const [showSuccess, setShowSuccess] = useState(false);
   const [validationError, setValidationError] = useState("");
+  const [loadingSlots, setLoadingSlots] = useState(false);
 
   useEffect(() => {
-    const fetchContract = async () => {
+    const HienThiDanhSachHopDong = async () => {
       try {
         const response = await api.get(`/checkout/contracts/${contractId}`);
         setContract(response.data);
@@ -31,8 +33,37 @@ export function SaleReturnSchedule() {
         setLoading(false);
       }
     };
-    if (contractId) fetchContract();
+    if (contractId) HienThiDanhSachHopDong();
   }, [contractId]);
+
+  useEffect(() => {
+    const HienThiKhungGioTrong = async () => {
+      if (!selectedDate) {
+        setAvailableSlots([]);
+        return;
+      }
+
+      setLoadingSlots(true);
+      try {
+        const response = await api.get('/checkout/available-slots', {
+          params: { date: selectedDate }
+        });
+        setAvailableSlots(response.data);
+        if (response.data.length > 0) {
+          setSelectedTime(response.data[0]);
+        } else {
+          setSelectedTime("");
+        }
+      } catch (err) {
+        console.error(err);
+        setAvailableSlots([]);
+      } finally {
+        setLoadingSlots(false);
+      }
+    };
+
+   HienThiKhungGioTrong();
+  }, [selectedDate]);
 
   if (loading || authLoading) {
     return (
@@ -59,13 +90,13 @@ export function SaleReturnSchedule() {
     );
   }
 
-  const formatDateStr = (dateString) => {
+  const DinhDangNgay = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
     return date.toLocaleDateString('vi-VN');
   };
 
-  const getRoomInfo = (contractData) => {
+  const HienThiThongTinPhong = (contractData) => {
     try {
       const giuong = contractData.hop_dong_giuong[0].giuong;
       return `${giuong.maphong}`;
@@ -74,7 +105,7 @@ export function SaleReturnSchedule() {
     }
   };
 
-  const handleRegister = async () => {
+  const XuLyDangKy = async () => {
     setValidationError("");
 
     if (!selectedDate) {
@@ -117,7 +148,7 @@ export function SaleReturnSchedule() {
     }
   };
 
-  const handleBackToSearch = () => {
+  const XuLyQuayLai = () => {
     navigate("/sale/contract-lookup");
   };
 
@@ -153,7 +184,7 @@ export function SaleReturnSchedule() {
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Phòng:</span>
-                <span className="font-medium">{getRoomInfo(contract)}</span>
+                <span className="font-medium">{HienThiThongTinPhong(contract)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Ngày trả phòng:</span>
@@ -164,7 +195,7 @@ export function SaleReturnSchedule() {
             </div>
 
             <button 
-              onClick={handleBackToSearch} 
+              onClick={XuLyQuayLai} 
               className="w-full inline-flex items-center justify-center rounded-md text-sm font-medium bg-green-600 text-white hover:bg-green-700 h-10 px-4 py-2"
             >
               Tiếp tục tra cứu
@@ -245,7 +276,7 @@ export function SaleReturnSchedule() {
               <Home className="h-5 w-5 text-gray-500 mt-0.5" />
               <div>
                 <p className="text-sm text-gray-500">Phòng</p>
-                <p className="font-medium">{getRoomInfo(contract)}</p>
+                <p className="font-medium">{HienThiThongTinPhong(contract)}</p>
               </div>
             </div>
 
@@ -254,7 +285,7 @@ export function SaleReturnSchedule() {
               <div>
                 <p className="text-sm text-gray-500">Thời hạn hợp đồng</p>
                 <p className="font-medium">
-                  {formatDateStr(contract.ngaybatdau)} - {formatDateStr(contract.ngayketthuc || contract.ngaybatdau)}
+                  {DinhDangNgay(contract.ngaybatdau)} - {DinhDangNgay(contract.ngayketthuc || contract.ngaybatdau)}
                 </p>
               </div>
             </div>
@@ -287,29 +318,30 @@ export function SaleReturnSchedule() {
               id="time"
               value={selectedTime}
               onChange={(e) => setSelectedTime(e.target.value)}
-              className="flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#e60076]"
+              disabled={loadingSlots || availableSlots.length === 0}
+              className="flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#e60076] disabled:bg-gray-100"
             >
-              <option value="08:00">08:00</option>
-              <option value="09:00">09:00</option>
-              <option value="10:00">10:00</option>
-              <option value="11:00">11:00</option>
-              <option value="13:00">13:00</option>
-              <option value="14:00">14:00</option>
-              <option value="15:00">15:00</option>
-              <option value="16:00">16:00</option>
-              <option value="17:00">17:00</option>
+              {loadingSlots ? (
+                <option>Đang tải khung giờ...</option>
+              ) : availableSlots.length > 0 ? (
+                availableSlots.map(slot => (
+                  <option key={slot} value={slot}>{slot}</option>
+                ))
+              ) : (
+                <option value="">{selectedDate ? "Hết khung giờ trống" : "Vui lòng chọn ngày"}</option>
+              )}
             </select>
           </div>
 
           <div className="flex gap-3 pt-4">
             <button 
-              onClick={handleBackToSearch} 
+              onClick={XuLyQuayLai} 
               className="flex-1 inline-flex items-center justify-center rounded-md text-sm font-medium border border-gray-200 bg-white hover:bg-gray-100 h-10 px-4 py-2"
             >
               Quay lại
             </button>
             <button 
-              onClick={handleRegister} 
+              onClick={XuLyDangKy} 
               className="flex-1 inline-flex items-center justify-center rounded-md text-sm font-medium bg-gradient-to-r from-[#e60076] to-[#ec003f] text-white hover:opacity-90 h-10 px-4 py-2"
             >
               Đăng ký lịch hẹn

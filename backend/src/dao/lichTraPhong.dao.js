@@ -1,22 +1,17 @@
 const supabase = require('../config/supabase');
 
-async function kiemTraTrungLich(ngay, gio) {
-  const { data, error } = await supabase
+
+async function taoMoi(ngay, gio, maHD, maNV) {
+  // Kiểm tra trùng lịch
+  const { data: checkData, error: checkError } = await supabase
     .from('lich_tra_phong')
     .select('*')
     .eq('ngay', ngay)
     .eq('gio', gio);
 
-  if (error) throw error;
+  if (checkError) throw checkError;
 
-  return data.length > 0;
-}
-
-async function taoMoi(ngay, gio, maHD, maNV) {
-  // Kiểm tra trùng lịch
-  const isDuplicated = await kiemTraTrungLich(ngay, gio);
-
-  if (isDuplicated) {
+  if (checkData.length > 0) {
     throw new Error('Khung giờ này đã có lịch trả phòng');
   }
 
@@ -52,7 +47,17 @@ async function taoMoi(ngay, gio, maHD, maNV) {
   return data;
 }
 
+async function layLichTheoNgay(ngay) {
+  const { data, error } = await supabase
+    .from('lich_tra_phong')
+    .select('gio')
+    .eq('ngay', ngay);
+
+  if (error) throw error;
+  return data;
+}
+
 module.exports = {
   taoMoi,
-  kiemTraTrungLich
+  layLichTheoNgay
 };
