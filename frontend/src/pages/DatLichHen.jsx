@@ -109,7 +109,7 @@ export default function DatLichHen() {
           setIsSubmitting(false);
           return;
         }
-        
+
         const formData = JSON.parse(formDataStr);
         const chiTiet = selectedRooms.flatMap(r => {
           const dsMagiuong = Array.isArray(r.dsMagiuong) && r.dsMagiuong.length > 0
@@ -184,7 +184,7 @@ export default function DatLichHen() {
       sessionStorage.removeItem('currentMaYC');
       sessionStorage.removeItem('formDataYeuCau');
       sessionStorage.removeItem('editLichHenMode');
-      
+
       console.log('[DatLichHen] Lịch hẹn tạo/cập nhật thành công! Redirect tới Chi tiết:', maYC);
       navigate(`/lich-hen/${maYC}`);
     } catch (err) {
@@ -228,7 +228,7 @@ export default function DatLichHen() {
         <div className="inline-flex items-center gap-2 bg-[#fce7f3] border border-[#fccee8] rounded-full px-3 py-1 mb-6">
           <div className="w-5 h-5 rounded-full bg-[#e60076] flex items-center justify-center">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="white" stroke="white" strokeWidth="2">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
             </svg>
           </div>
           <span className="font-['Inter',sans-serif] text-[#e60076] text-[13px] font-medium">
@@ -372,7 +372,7 @@ export default function DatLichHen() {
                 <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between">
                   <span className="font-['Inter',sans-serif] text-[#6a7282] text-[14px]">Ngày hẹn</span>
                   <span className="font-['Inter',sans-serif] font-semibold text-[#1e2939] text-[14px]">
-                    {String(selectedDay).padStart(2,'0')}/{String(currentMonth+1).padStart(2,'0')}/{currentYear}
+                    {String(selectedDay).padStart(2, '0')}/{String(currentMonth + 1).padStart(2, '0')}/{currentYear}
                   </span>
                 </div>
                 <div className="flex justify-between mt-2">
@@ -393,7 +393,7 @@ export default function DatLichHen() {
           >
             {isSubmitting ? 'Đang lưu...' : (editLichHenMode ? 'Lưu thay đổi' : 'Lưu lịch hẹn')}
           </button>
-          
+
           <button
             onClick={() => setIsCancelModalOpen(true)}
             className="w-full mt-3 bg-white border border-[#e60076] text-[#e60076] font-['Inter',sans-serif] font-bold text-[16px] py-4 rounded-[12px] hover:bg-[#fdf2f8] transition-all"
@@ -410,7 +410,7 @@ export default function DatLichHen() {
         {isCancelModalOpen && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] animate-in fade-in duration-200">
             <div className="bg-white rounded-[24px] p-8 max-w-[440px] w-[90%] relative shadow-2xl animate-in zoom-in-95 duration-200">
-              <button 
+              <button
                 onClick={() => setIsCancelModalOpen(false)}
                 className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
               >

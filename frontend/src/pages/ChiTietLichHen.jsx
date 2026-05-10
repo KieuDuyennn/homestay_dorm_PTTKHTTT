@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import MainLayout from '../components/MainLayout';
 import ModalXacNhanChot from '../components/ModalXacNhanChot';
 import { phieuYeuCauService } from '../services/phieuYeuCauService';
+import { chiTietPhieuYeuCauService } from '../services/chiTietPhieuYeuCauService';
 
 const ChiTietLichHen = () => {
   const { id } = useParams();
@@ -26,7 +27,7 @@ const ChiTietLichHen = () => {
 
   const fetchChiTiet = async () => {
     try {
-      const res = await phieuYeuCauService.layChiTiet(id);
+      const res = await chiTietPhieuYeuCauService.layChiTiet(id);
       if (res.success) {
         setData(res.data);
 
@@ -68,7 +69,7 @@ const ChiTietLichHen = () => {
 
       // 1. Update trangthaichot = 'Chốt' cho item / toàn bộ giường của phòng nguyên căn
       for (const selectedItem of selectedItems) {
-        await phieuYeuCauService.updateTrangThaiChot({
+        await chiTietPhieuYeuCauService.updateTrangThaiChot({
           mayc: id,
           maphong: selectedItem.maphong,
           magiuong: selectedItem.magiuong,
@@ -82,7 +83,7 @@ const ChiTietLichHen = () => {
       });
 
       for (const deleteItem of itemsToDelete) {
-        await phieuYeuCauService.deleteChiTiet(id, deleteItem.maphong, deleteItem.magiuong);
+        await chiTietPhieuYeuCauService.deleteChiTiet(id, deleteItem.maphong, deleteItem.magiuong);
       }
 
       // 3. Update state UI - mark này là chốt

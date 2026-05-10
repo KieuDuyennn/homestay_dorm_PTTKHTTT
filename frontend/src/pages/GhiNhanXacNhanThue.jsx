@@ -4,6 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import MainLayout from '../components/MainLayout';
+import { phieuYeuCauService } from '../services/phieuYeuCauService';
 import ModalThongBao from '../components/ModalThongBao';
 import api from '../services/api';
 
@@ -37,10 +38,9 @@ const GhiNhanXacNhanThue = () => {
 
   const fetchChiTiet = async () => {
     try {
-      // API noi-quy cũng trả về data giống hệt chi tiết
-      const res = await api.get(`/phieu-yeu-cau/noi-quy/${id}`);
-      if (res.data.success) {
-        setPhieu(res.data.data);
+      const res = await phieuYeuCauService.layChiTietNoiQuy(id);
+      if (res.success) {
+        setPhieu(res.data);
       } else {
         navigate('/phieu-yeu-cau');
       }
@@ -53,8 +53,8 @@ const GhiNhanXacNhanThue = () => {
   const handleXacNhan = async () => {
     if (!dongY) return;
     try {
-      const res = await api.post(`/phieu-yeu-cau/${id}/xac-nhan-thue`, { dongYNoiQuy: true });
-      if (res.data.success) {
+      const res = await phieuYeuCauService.xacNhanThue(id, { dongYNoiQuy: true });
+      if (res.success) {
         setModalState({
           show: true,
           type: 'success',
