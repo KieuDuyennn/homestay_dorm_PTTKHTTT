@@ -253,7 +253,7 @@ class phieuYeuCauService {
   static async layChiTietVoiTinhTrang(mayc) {
     try {
       // 1. Lấy chi tiết PYC (join khach_hang + chi_tiet → giuong → phong)
-      const pycResult = await phieuYeuCauDao.getChiTiet(mayc);
+      const pycResult = await chiTietPhieuYeuCauDao.getChiTiet(mayc);
       if (!pycResult.success) return pycResult;
       if (!pycResult.data) return { success: false, message: 'Không tìm thấy hồ sơ' };
 
@@ -388,7 +388,7 @@ class phieuYeuCauService {
       }
 
       // 2. Lấy makh từ phiếu
-      const pycResult = await phieuYeuCauDao.getChiTiet(mayc);
+      const pycResult = await chiTietPhieuYeuCauDao.getChiTiet(mayc);
       if (!pycResult.success || !pycResult.data) {
         return { success: false, message: 'Không tìm thấy hồ sơ' };
       }
@@ -440,7 +440,7 @@ class phieuYeuCauService {
   static async ghiNhanXacNhanNoiQuy(mayc) {
     try {
       // 1. Lấy thông tin PYC + chi tiết phòng/giường
-      const pycResult = await phieuYeuCauDao.getChiTiet(mayc);
+      const pycResult = await chiTietPhieuYeuCauDao.getChiTiet(mayc);
       if (!pycResult.success || !pycResult.data) {
         return { success: false, message: 'Không tìm thấy hồ sơ' };
       }
