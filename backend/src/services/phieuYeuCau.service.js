@@ -4,7 +4,7 @@ const chiTietPhieuYeuCauDao = require('../dao/chiTietPhieuYeuCau.dao');
 const phongDao = require('../dao/phong.dao');
 const giuongDao = require('../dao/giuong.dao');
 const thanhToanDao = require('../dao/thanhToan.dao');
-const supabase = require('../config/supabase');
+const chiNhanhDao = require('../dao/chiNhanh.dao');
 
 class phieuYeuCauService {
   static async taoPhieuYeuCau(data) {
@@ -233,10 +233,10 @@ class phieuYeuCauService {
     }
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // UC1: Tra cứu hồ sơ — Lấy danh sách PYC "Cần xác nhận"
+  // =============================================================================
+  // PHẦN CỦA DUYÊN: UC1 - Tra cứu hồ sơ (Lấy danh sách PYC "Cần xác nhận")
   // Gọi từ: GET /api/phieu-yeu-cau/can-xac-nhan
-  // ─────────────────────────────────────────────────────────────────────────────
+  // =============================================================================
   static async layDanhSachCanXacNhan(keyword) {
     try {
       return await phieuYeuCauDao.selectCanXacNhan(keyword);
@@ -246,102 +246,120 @@ class phieuYeuCauService {
     }
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // UC1: Kiểm tra phòng — Lấy chi tiết PYC + trạng thái thực tế phòng/giường
+  // =============================================================================
+  // PHẦN CỦA DUYÊN: UC1 - Kiểm tra phòng (Lấy chi tiết PYC + trạng thái phòng)
   // Gọi từ: GET /api/phieu-yeu-cau/chi-tiet-voi-tinh-trang/:mayc
-  // ─────────────────────────────────────────────────────────────────────────────
+  // =============================================================================
   static async layChiTietVoiTinhTrang(mayc) {
     try {
-      // 1. Lấy chi tiết PYC (đã có trong DAO.getChiTiet, join khach_hang + chi_tiet → giuong → phong)
+      // 1. Lấy chi tiết PYC (join khach_hang + chi_tiet → giuong → phong)
       const pycResult = await phieuYeuCauDao.getChiTiet(mayc);
       if (!pycResult.success) return pycResult;
       if (!pycResult.data) return { success: false, message: 'Không tìm thấy hồ sơ' };
 
       const phieuData = pycResult.data;
+      const loaiHinhThue = phieuData.loaihinhthue; // 'Nguyên phòng' | 'Ở ghép'
 
-      // 2. Lấy danh sách phòng/giường từ chi_tiet
+      // 2. Toàn bộ chi tiết phòng/giường
       const chiTiet = phieuData.chi_tiet || [];
+      console.log(`[layChiTietVoiTinhTrang] mayc=${mayc}, loaiHinhThue=${loaiHinhThue}, chiTiet.length=${chiTiet.length}`);
+      console.log('[layChiTietVoiTinhTrang] chiTiet:', JSON.stringify(chiTiet));
 
-      // 3. Kiểm tra trạng thái THỰC TẾ của từng phòng và giường từ DB
-      const dsPhongUnique = [...new Set(chiTiet.map(ct => ct.maphong))];
-      const trangThaiPhongMap = {};
-      for (const maphong of dsPhongUnique) {
-        const result = await phongDao.selectTrangThai(maphong);
-        if (result.success) {
-          trangThaiPhongMap[maphong] = result.data.trangthai;
+      // 3. Xác định phòng chính (tất cả giường cùng 1 phòng)
+      const maphongChinh = chiTiet[0]?.maphong || null;
+      console.log(`[layChiTietVoiTinhTrang] maphongChinh=${maphongChinh}`);
+
+      // 4. Lấy thông tin phòng + chi nhánh qua DAO (chuẩn 3 lớp)
+      let phongInfo = null;
+      let chiNhanhInfo = null;
+      if (maphongChinh) {
+        const phongResult = await phongDao.selectByMaPhong(maphongChinh);
+        console.log(`[layChiTietVoiTinhTrang] phongData:`, phongResult.data);
+        if (phongResult.success && phongResult.data) {
+          phongInfo = phongResult.data;
+          const cnResult = await chiNhanhDao.selectByMaCN(phongInfo.macn);
+          chiNhanhInfo = cnResult.success ? cnResult.data : null;
         }
       }
 
-      const dsGiuongVoiTinhTrang = [];
-      for (const ct of chiTiet) {
+      // 5. Lấy danh sách giường đã chốt
+      const dsGiuongDaChot = chiTiet.filter(ct => ct.trangthaichot === 'Chốt');
+      console.log(`[layChiTietVoiTinhTrang] dsGiuongDaChot.length=${dsGiuongDaChot.length}`);
+
+      // 6. Lấy tình trạng thực tế từng giường đã chốt
+      const dsGiuongDaChotVoiTinhTrang = [];
+      for (const ct of dsGiuongDaChot) {
         const result = await giuongDao.selectTinhTrang(ct.magiuong, ct.maphong);
-        dsGiuongVoiTinhTrang.push({
-          magiuong: ct.magiuong,
-          maphong: ct.maphong,
-          trangthaichot: ct.trangthaichot,
-          tinhTrangThucTe: result.success ? result.data.tinhtrang : null,
-          // Thông tin phòng từ join
-          phong: ct.giuong?.phong || null,
+        console.log(`[layChiTietVoiTinhTrang] giuong ${ct.magiuong}/${ct.maphong}: tinhtrang=${result.data?.tinhtrang}`);
+        dsGiuongDaChotVoiTinhTrang.push({
+          maGiuong:  ct.magiuong,
+          maPhong:   ct.maphong,
+          tinhTrang: result.success ? result.data.tinhtrang : null,
         });
       }
 
-      // 4. Thông tin chi nhánh từ phòng đầu tiên trong chi tiết
-      const phongDauTien = chiTiet[0]?.giuong?.phong || null;
-      let chiNhanhInfo = null;
-      if (phongDauTien?.macn) {
-        const { data: cnData } = await supabase
-          .from('chi_nhanh')
-          .select('macn, tencn, noiquy, quydinhcoc')
-          .eq('macn', phongDauTien.macn)
-          .single();
-        chiNhanhInfo = cnData || null;
+      // 7. Logic check tình trạng khả dụng theo loại hình thuê
+      let tinhTrangPhongKhaDung = false;
+
+      if (loaiHinhThue === 'Nguyên phòng') {
+        // Nguyên phòng: TẤT CẢ giường trong phòng phải 'Chưa sử dụng'
+        if (maphongChinh) {
+          const bedsResult = await giuongDao.selectByMaPhong(maphongChinh);
+          const allBeds = bedsResult.success ? bedsResult.data : [];
+          tinhTrangPhongKhaDung =
+            allBeds.length > 0 &&
+            allBeds.every(g => g.tinhtrang === 'Chưa sử dụng');
+          console.log(`[layChiTietVoiTinhTrang] Nguyên phòng: allBeds=${JSON.stringify(allBeds)}, khaDung=${tinhTrangPhongKhaDung}`);
+        }
+      } else {
+        // Ở ghép: các giường đã chốt đều phải 'Chưa sử dụng'
+        tinhTrangPhongKhaDung =
+          dsGiuongDaChotVoiTinhTrang.length > 0 &&
+          dsGiuongDaChotVoiTinhTrang.every(g => g.tinhTrang === 'Chưa sử dụng');
+        console.log(`[layChiTietVoiTinhTrang] Ở ghép: khaDung=${tinhTrangPhongKhaDung}`);
       }
 
-      // 5. Build response theo cấu trúc frontend cần
+      // 8. Thông tin khách hàng từ join khach_hang
       const khachHang = phieuData.khach_hang;
+
+      // 9. Build response
       const response = {
-        maHoSo: phieuData.mayc,
-        trangThai: phieuData.trangthai,
-        ngayVaoO: phieuData.thoigiandukienvao,
+        maHoSo:      phieuData.mayc,
+        trangThai:   phieuData.trangthai,
+        ngayVaoO:    phieuData.thoigiandukienvao,
         thoiHanThue: phieuData.thoihanthue,
-        loaiHinhThue: phieuData.loaihinhthue,
-        loaiPhong: phieuData.loaihinhthue,
-        loaiphong: phieuData.loaihinhthue,
+        loaiHinhThue,
         soLuongDuKien: phieuData.soluongdukien,
-        lyDoHuy: phieuData.lydohuy,
-        maNV: phieuData.manv,
-        doiTuongThue: khachHang?.loaikhachhang === 'Nhóm' ? 'Đại diện nhóm' : 'Cá nhân',
+        lyDoHuy:     phieuData.lydohuy,
+        maNV:        phieuData.manv,
         khachHang: {
-          maKH: khachHang?.makh,
-          hoTen: khachHang?.hoten,
-          gioiTinh: khachHang?.gioitinh,
-          sdt: khachHang?.sdt,
-          cccd: khachHang?.socccd,        // ← frontend mock dùng 'cccd', map từ 'socccd'
-          quocTich: khachHang?.quoctich,
+          maKH:          khachHang?.makh,
+          hoTen:         khachHang?.hoten,
+          gioiTinh:      khachHang?.gioitinh,
+          sdt:           khachHang?.sdt,
+          cccd:          khachHang?.socccd,
+          quocTich:      khachHang?.quoctich,
           loaiKhachHang: khachHang?.loaikhachhang,
           soNguoiDuKien: phieuData.soluongdukien,
         },
-        phong: phongDauTien ? {
-          maPhong: phongDauTien.maphong,
-          maChiNhanh: phongDauTien.macn,
-          tienThueThang: phongDauTien.tienthuethang,
-          gioiTinh: phongDauTien.gioitinh,
-          trangThai: trangThaiPhongMap[phongDauTien.maphong] || phongDauTien.trangthai,
+        phong: phongInfo ? {
+          maPhong:       phongInfo.maphong,
+          maChiNhanh:    phongInfo.macn,
+          tienThueThang: phongInfo.tienthuethang,
+          loaiPhong:     loaiHinhThue,
         } : null,
-        dsGiuong: dsGiuongVoiTinhTrang.map(g => ({
-          maGiuong: g.magiuong,
-          maPhong: g.maphong,
-          tinhTrang: g.tinhTrangThucTe,
-          trangthaichot: g.trangthaichot,
-        })),
+        dsGiuongDaChot:       dsGiuongDaChotVoiTinhTrang,
+        tinhTrangPhongKhaDung,
         chiNhanh: chiNhanhInfo ? {
-          maCN: chiNhanhInfo.macn,
-          tenCN: chiNhanhInfo.tencn,
-          noiQuy: chiNhanhInfo.noiquy,
+          maCN:       chiNhanhInfo.macn,
+          tenCN:      chiNhanhInfo.tencn,
+          noiQuy:     chiNhanhInfo.noiquy,
           quyDinhCoc: chiNhanhInfo.quydinhcoc,
         } : null,
       };
 
+      console.log('[layChiTietVoiTinhTrang] response.phong:', response.phong);
+      console.log('[layChiTietVoiTinhTrang] tinhTrangPhongKhaDung:', tinhTrangPhongKhaDung);
       return { success: true, data: response };
     } catch (error) {
       console.error('Lỗi phieuYeuCauService.layChiTietVoiTinhTrang:', error);
@@ -350,6 +368,7 @@ class phieuYeuCauService {
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
+
   // UC3 (extend): Cập nhật thông tin khách thuê
   // Gọi từ: PUT /api/phieu-yeu-cau/:mayc/thong-tin-khach
   // ─────────────────────────────────────────────────────────────────────────────
@@ -396,10 +415,10 @@ class phieuYeuCauService {
     }
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // UC2 (extend): Hủy thuê
+  // =============================================================================
+  // PHẦN CỦA DUYÊN: UC2 (extend) - Hủy thuê
   // Gọi từ: PATCH /api/phieu-yeu-cau/:mayc/huy-thue
-  // ─────────────────────────────────────────────────────────────────────────────
+  // =============================================================================
   static async huyThue(mayc, lyDoHuy) {
     try {
       if (!lyDoHuy || lyDoHuy.trim().length === 0) {
@@ -414,50 +433,51 @@ class phieuYeuCauService {
     }
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // UC4: Ghi nhận xác nhận thuê — tạo phiếu TT cọc + giữ chỗ phòng + hoàn tất PYC
+  // =============================================================================
+  // PHẦN CỦA DUYÊN: UC4 - Ghi nhận xác nhận thuê (Tạo phiếu TT cọc + giữ chỗ)
   // Gọi từ: POST /api/phieu-yeu-cau/:mayc/xac-nhan-thue
-  // ─────────────────────────────────────────────────────────────────────────────
+  // =============================================================================
   static async ghiNhanXacNhanNoiQuy(mayc) {
     try {
-      // 1. Lấy thông tin PYC + phòng/giường
+      // 1. Lấy thông tin PYC + chi tiết phòng/giường
       const pycResult = await phieuYeuCauDao.getChiTiet(mayc);
       if (!pycResult.success || !pycResult.data) {
         return { success: false, message: 'Không tìm thấy hồ sơ' };
       }
       const phieuData = pycResult.data;
-      const makh = phieuData.makh;
-      const manv = phieuData.manv; // nhân viên sale đang xử lý
-      const chiTiet = phieuData.chi_tiet || [];
+      const makh     = phieuData.makh;
+      const manv     = phieuData.manv;
+      const chiTiet  = phieuData.chi_tiet || [];
 
-      // 2. Lấy maphong từ chi tiết (phòng đầu tiên)
-      const maphong = chiTiet.length > 0 ? chiTiet[0].maphong : null;
-      if (!maphong) {
-        return { success: false, message: 'Hồ sơ chưa có thông tin phòng' };
+      // 2. Lọc ra CHỈ những giường đã chốt (trangthaichot = 'Chốt')
+      const giuongDaChot = chiTiet.filter(ct => ct.trangthaichot === 'Chốt');
+      if (giuongDaChot.length === 0) {
+        return { success: false, message: 'Hồ sơ chưa có giường nào được chốt' };
       }
 
-      // 3. Sinh mã thanh toán mới (tái dùng hàm đã có trong thanhToan.dao.js)
+      // 3. Sinh mã thanh toán mới (tăng dần: TT001, TT002, ...)
       const matt = await thanhToanDao.sinhMaThanhToan();
 
-      // 4. Tạo phiếu thanh toán cọc (SoTien = 0, kế toán sẽ tính sau)
-      const thanhToanData = {
+      // 4. Tạo phiếu thanh toán cọc (SoTien = 0, kế toán tính sau)
+      await thanhToanDao.them({
         matt,
-        loaitt: 'Tiền cọc',
-        sotien: 0,
-        thoidiemyeucau: new Date().toISOString(),
-        tinhtrangyeucau: 'Chờ tính cọc',
-        trangthai: 'Chờ tính cọc',
-        mayc: mayc,
+        loaitt:          'Tiền cọc',
+        sotien:          0,
+        thoidiemyeucau:  new Date().toISOString(),
+        trangthai:       'Chờ tính cọc',
+        mayc,
         makh,
-        manvsale: manv,
-      };
-      await thanhToanDao.them(thanhToanData);
+        manvsale:        manv,
+      });
 
-      // 5. Cập nhật trạng thái phòng → 'Đang giữ chỗ' (hợp lệ theo schema mới)
-      const phongResult = await phongDao.updateTrangThai(maphong, 'Đang giữ chỗ');
-      if (!phongResult.success) {
-        // Log lỗi nhưng không rollback thanh_toan (sẽ xử lý thủ công nếu cần)
-        console.error('Lỗi cập nhật trạng thái phòng:', phongResult.error);
+      // 5. Cập nhật tinhtrang từng GIƯỜNG đã chốt → 'Đang giữ chỗ'
+      const giuongErrors = [];
+      for (const ct of giuongDaChot) {
+        const result = await giuongDao.updateTinhTrang(ct.magiuong, ct.maphong, 'Đang giữ chỗ');
+        if (!result.success) {
+          console.error(`Lỗi cập nhật giường ${ct.magiuong}/${ct.maphong}:`, result.error);
+          giuongErrors.push({ magiuong: ct.magiuong, maphong: ct.maphong });
+        }
       }
 
       // 6. Chuyển trạng thái PYC → 'Hoàn tất'
@@ -467,17 +487,19 @@ class phieuYeuCauService {
         success: true,
         message: 'Đã chuyển sang bộ phận kế toán thành công',
         data: {
-          maHoSo: mayc,
+          maHoSo:      mayc,
           trangThaiPYC: 'Hoàn tất',
           phieuThanhToan: {
-            maTT: matt,
-            loaiTT: 'Tiền cọc',
-            trangThai: 'Chờ tính cọc',
+            maTT:     matt,
+            loaiTT:   'Tiền cọc',
+            trangThai:'Chờ thanh toán',
           },
-          phong: {
-            maPhong: maphong,
-            trangThai: 'Đang giữ chỗ',
-          },
+          dsGiuongDaGiuCho: giuongDaChot.map(ct => ({
+            maGiuong: ct.magiuong,
+            maPhong:  ct.maphong,
+            tinhTrang:'Đang giữ chỗ',
+          })),
+          ...(giuongErrors.length > 0 && { warningGiuong: giuongErrors }),
         },
       };
     } catch (error) {

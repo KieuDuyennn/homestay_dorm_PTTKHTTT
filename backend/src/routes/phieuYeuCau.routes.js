@@ -171,7 +171,9 @@ router.patch('/update-trang-thai', async (req, res, next) => {
   }
 });
 
-// ─── ROUTE: Lấy danh sách PYC trạng thái "Cần xác nhận" ───────────────────
+// =============================================================================
+// PHẦN CỦA DUYÊN: ROUTE Lấy danh sách PYC trạng thái "Cần xác nhận"
+// =============================================================================
 // GET /api/phieu-yeu-cau/can-xac-nhan?keyword=...
 // Dùng cho tab "PYC Xem Phòng" ở màn hình MH_DanhSachPYCXemPhong
 router.get('/can-xac-nhan', async (req, res, next) => {
@@ -185,7 +187,9 @@ router.get('/can-xac-nhan', async (req, res, next) => {
   }
 });
 
-// ─── ROUTE: Chi tiết PYC kèm tình trạng thực tế phòng/giường ──────────────
+// =============================================================================
+// PHẦN CỦA DUYÊN: ROUTE Chi tiết PYC kèm tình trạng thực tế phòng/giường
+// =============================================================================
 // GET /api/phieu-yeu-cau/chi-tiet-voi-tinh-trang/:mayc
 // Dùng cho màn hình MH_ChiTietPYCXemPhong và MH_GhiNhanXacNhanThue
 router.get('/chi-tiet-voi-tinh-trang/:mayc', async (req, res, next) => {
@@ -222,7 +226,9 @@ router.put('/:mayc/thong-tin-khach', async (req, res, next) => {
   }
 });
 
-// ─── ROUTE: Hủy thuê ───────────────────────────────────────────────────────
+// =============================================================================
+// PHẦN CỦA DUYÊN: ROUTE Hủy thuê
+// =============================================================================
 // PATCH /api/phieu-yeu-cau/:mayc/huy-thue
 // Dùng khi nhân viên nhấn "Xác nhận hủy" trong ModalHuyThue ở MH_ChiTietPYCXemPhong
 router.patch('/:mayc/huy-thue', async (req, res, next) => {
@@ -257,7 +263,9 @@ router.get('/noi-quy/:mayc', async (req, res, next) => {
   }
 });
 
-// ─── ROUTE: Xác nhận thuê (hành động chính UC4) ────────────────────────────
+// =============================================================================
+// PHẦN CỦA DUYÊN: ROUTE Xác nhận thuê (hành động chính UC4)
+// =============================================================================
 // POST /api/phieu-yeu-cau/:mayc/xac-nhan-thue
 // Dùng khi nhân viên tick nội quy và nhấn "Chuyển hồ sơ xác nhận"
 // trong MH_GhiNhanXacNhanThue

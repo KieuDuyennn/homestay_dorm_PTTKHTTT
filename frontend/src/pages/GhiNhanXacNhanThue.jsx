@@ -1,6 +1,10 @@
+// =============================================================================
+// PHẦN CỦA DUYÊN: GIAO DIỆN GHI NHẬN XÁC NHẬN THUÊ PHÒNG
+// =============================================================================
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import MainLayout from '../components/MainLayout';
+import ModalThongBao from '../components/ModalThongBao';
 import api from '../services/api';
 
 const noiQuy = [
@@ -21,6 +25,7 @@ const GhiNhanXacNhanThue = () => {
   const [user, setUser] = useState(null);
   const [phieu, setPhieu] = useState(null);
   const [dongY, setDongY] = useState(false);
+  const [modalState, setModalState] = useState({ show: false, type: 'success', title: '', message: '', isSuccess: false });
 
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
@@ -50,21 +55,42 @@ const GhiNhanXacNhanThue = () => {
     try {
       const res = await api.post(`/phieu-yeu-cau/${id}/xac-nhan-thue`, { dongYNoiQuy: true });
       if (res.data.success) {
-        navigate('/phieu-yeu-cau');
+        setModalState({
+          show: true,
+          type: 'success',
+          title: 'Thành công',
+          message: res.data.message || 'Xác nhận thành công!',
+          isSuccess: true
+        });
       } else {
-        alert(res.data.message || 'Lỗi xác nhận thuê');
+        setModalState({
+          show: true,
+          type: 'error',
+          title: 'Lỗi xác nhận thuê',
+          message: res.data.message || 'Lỗi xác nhận thuê',
+          isSuccess: false
+        });
       }
     } catch (error) {
       console.error('Lỗi xác nhận thuê:', error);
-      alert('Lỗi xác nhận thuê');
+      setModalState({
+        show: true,
+        type: 'error',
+        title: 'Lỗi hệ thống',
+        message: error.response?.data?.message || 'Lỗi server khi xác nhận thuê',
+        isSuccess: false
+      });
     }
   };
 
   if (!user || !phieu) return null;
 
+  const dsChot = phieu.dsGiuongDaChot || [];
+  const dsMaGiuong = dsChot.map(g => g.maGiuong).join(', ') || '-';
   const giaThue = phieu.phong?.tienThueThang || 0;
   const soThangCoc = 2;
   const tongCoc = giaThue * soThangCoc;
+
 
   return (
     <MainLayout>
@@ -72,16 +98,18 @@ const GhiNhanXacNhanThue = () => {
       <div className="mb-8">
         <button onClick={() => navigate(`/phieu-yeu-cau/${phieu.maHoSo}`)} className="flex items-center gap-2 text-[14px] text-gray-500 hover:text-navy transition-colors mb-4 font-medium">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6"/></svg>
-          Quay lại Cl {phieu.maHoSo}
+          Quay lại {phieu.maHoSo}
         </button>
         <h1 className="text-[28px] font-extrabold text-navy">Ghi nhận xác nhận thuê</h1>
         <p className="text-[13px] text-gray-400 mt-1">Xác nhận khách hàng đồng ý nội quy và chuyển hồ sơ sang trạng thái hoàn tất</p>
       </div>
 
-      {/* Thông tin khách hàng */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-8 mb-6 shadow-sm">
-        <h2 className="text-[18px] font-bold text-navy mb-8">Thông tin khách hàng</h2>
-        <div className="grid grid-cols-2 gap-y-6 gap-x-16">
+      {/* === KHUNG CHUNG: Thông tin khách + Thông tin phòng + Nội quy === */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-8 mb-6 shadow-sm space-y-0">
+
+        {/* ─── Section 1: Thông tin khách hàng ─── */}
+        <h2 className="text-[18px] font-bold text-navy mb-6">Thông tin khách hàng</h2>
+        <div className="grid grid-cols-2 gap-y-5 gap-x-16">
           <div>
             <p className="text-[12px] text-gray-400 mb-1">Họ và tên</p>
             <p className="text-[15px] font-bold text-navy">{phieu.khachHang?.hoTen}</p>
@@ -103,49 +131,42 @@ const GhiNhanXacNhanThue = () => {
             <p className="text-[15px] font-bold text-navy">{phieu.khachHang?.cccd}</p>
           </div>
           <div>
-            <p className="text-[12px] text-gray-400 mb-1">Tình trạng tài chính</p>
-            <p className="text-[15px] font-bold text-navy">{phieu.khachHang?.tinhTrangTaiChinh || 'Truyền thống'}</p>
-          </div>
-          <div>
             <p className="text-[12px] text-gray-400 mb-1">Số lượng dự kiến</p>
             <p className="text-[15px] font-bold text-navy">{phieu.khachHang?.soNguoiDuKien || 1} người</p>
           </div>
-          <div></div>
           <div>
             <p className="text-[12px] text-gray-400 mb-1">Ngày vào ở dự kiến</p>
             <p className="text-[15px] font-bold text-navy">{phieu.ngayVaoO}</p>
           </div>
-          <div></div>
           <div>
             <p className="text-[12px] text-gray-400 mb-1">Thời hạn thuê</p>
             <p className="text-[15px] font-bold text-navy">{phieu.thoiHanThue} tháng</p>
           </div>
         </div>
-      </div>
 
-      {/* Thông tin phòng */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-8 mb-6 shadow-sm">
-        <h2 className="text-[18px] font-bold text-navy mb-8">Thông tin phòng</h2>
-        <div className="space-y-4">
+        {/* ─── Divider ─── */}
+        <div className="border-t border-gray-100 my-8" />
+
+        {/* ─── Section 2: Thông tin phòng ─── */}
+        <h2 className="text-[18px] font-bold text-navy mb-6">Thông tin phòng</h2>
+        <div className="space-y-3">
           {[
-            ['Đối tượng thuê:', phieu.doiTuongThue],
             ['Loại hình thuê:', phieu.loaiHinhThue],
             ['Mã chi nhánh:', phieu.phong?.maChiNhanh],
             ['Mã phòng:', phieu.phong?.maPhong, true],
-            ['Mã giường:', phieu.dsGiuong?.[0]?.maGiuong || '-'],
-            ['Loại phòng:', phieu.phong?.loaiPhong],
-
+            ['Mã giường:', dsMaGiuong],
           ].map(([label, value, isPink], idx) => (
             <div key={idx} className="flex items-center justify-between py-1">
               <span className="text-[14px] text-gray-500 font-medium">{label}</span>
-              <span className={`text-[14px] font-bold ${isPink ? 'text-primary' : 'text-navy'}`}>{value}</span>
+              <span className={`text-[14px] font-bold ${isPink ? 'text-primary' : 'text-navy'}`}>{value || '-'}</span>
             </div>
           ))}
         </div>
-      </div>
 
-      {/* Nội quy */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-8 mb-6 shadow-sm">
+        {/* ─── Divider ─── */}
+        <div className="border-t border-gray-100 my-8" />
+
+        {/* ─── Section 3: Nội quy và điều kiện thuê ─── */}
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 bg-orange-50 rounded-full flex items-center justify-center text-orange-500">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
@@ -164,6 +185,7 @@ const GhiNhanXacNhanThue = () => {
           ))}
         </div>
       </div>
+      {/* === HẾT KHUNG CHUNG === */}
 
       {/* Xác nhận đồng ý */}
       <div className="bg-white rounded-2xl border border-gray-100 p-8 mb-6 shadow-sm">
@@ -204,13 +226,21 @@ const GhiNhanXacNhanThue = () => {
         </button>
       </div>
 
-      {/* Warning banner */}
-      <div className="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-        <svg className="text-amber-500 flex-shrink-0 mt-0.5" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        <p className="text-[12px] text-amber-700 leading-relaxed">
-          <strong>Lưu ý:</strong> Sau khi xác nhận thành công, hệ thống sẽ tự động tạo phiếu thanh toán cọc. Tiền cọc = {giaThue.toLocaleString()}đ × {soThangCoc} tháng = <strong>{tongCoc.toLocaleString()}đ</strong>.
-        </p>
-      </div>
+      <ModalThongBao
+        show={modalState.show}
+        type={modalState.type}
+        title={modalState.title}
+        message={modalState.message}
+        primaryAction={{
+          label: modalState.isSuccess ? 'Về danh sách' : 'Đóng',
+          onClick: () => {
+            setModalState(prev => ({ ...prev, show: false }));
+            if (modalState.isSuccess) {
+              navigate('/phieu-yeu-cau');
+            }
+          }
+        }}
+      />
     </MainLayout>
   );
 };

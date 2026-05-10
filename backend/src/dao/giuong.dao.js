@@ -34,6 +34,19 @@ class giuongDao {
     }
     return { success: true, data };
   }
+  // Lấy tất cả giường của 1 phòng
+  static async selectByMaPhong(maphong) {
+    const { data, error } = await supabase
+      .from('giuong')
+      .select('magiuong, maphong, tinhtrang')
+      .eq('maphong', maphong);
+
+    if (error) {
+      console.error('Lỗi giuongDao.selectByMaPhong:', error);
+      return { success: false, error };
+    }
+    return { success: true, data: data || [] };
+  }
 }
 
 module.exports = giuongDao;

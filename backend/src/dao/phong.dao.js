@@ -165,6 +165,20 @@ class phongDao {
     }
     return { success: true, data };
   }
+  // Lấy thông tin phòng theo mã phòng
+  static async selectByMaPhong(maphong) {
+    const { data, error } = await supabase
+      .from('phong')
+      .select('maphong, tienthuethang, trangthai, macn, gioitinh')
+      .eq('maphong', maphong)
+      .single();
+
+    if (error) {
+      console.error('Lỗi phongDao.selectByMaPhong:', error);
+      return { success: false, error };
+    }
+    return { success: true, data };
+  }
 }
 
 module.exports = phongDao;

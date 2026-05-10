@@ -1,3 +1,6 @@
+// =============================================================================
+// PHẦN CỦA DUYÊN: GIAO DIỆN XEM DANH SÁCH PHIẾU CHỜ XÁC NHẬN
+// =============================================================================
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainLayout from '../components/MainLayout';

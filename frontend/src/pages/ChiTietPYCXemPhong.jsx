@@ -1,3 +1,6 @@
+// =============================================================================
+// PHẦN CỦA DUYÊN: GIAO DIỆN XEM CHI TIẾT & HỦY THUÊ
+// =============================================================================
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import MainLayout from '../components/MainLayout';
@@ -99,7 +102,9 @@ const ChiTietPYCXemPhong = () => {
 
   if (!user || !phieu) return null;
 
-  const trangThaiPhong = phieu.phong?.trangThai === 'Chưa sử dụng' || phieu.phong?.trangThai === 'Còn trống';
+  const trangThaiPhong = phieu.tinhTrangPhongKhaDung === true;
+  const dsChot = phieu.dsGiuongDaChot || [];
+  const dsMaGiuong = dsChot.map(g => g.maGiuong).join(', ') || '-';
 
   return (
     <MainLayout>
@@ -248,16 +253,14 @@ const ChiTietPYCXemPhong = () => {
         <h2 className="text-[18px] font-bold text-navy mb-8">Thông tin phòng</h2>
         <div className="space-y-4">
           {[
-            ['Đối tượng thuê:', phieu.doiTuongThue],
             ['Loại hình thuê:', phieu.loaiHinhThue],
             ['Mã chi nhánh:', phieu.phong?.maChiNhanh],
             ['Mã phòng:', phieu.phong?.maPhong, true],
-            ['Mã giường:', phieu.dsGiuong?.[0]?.maGiuong || '-'],
-            ['Loại phòng:', phieu.phong?.loaiPhong],
+            ['Mã giường:', dsMaGiuong],
           ].map(([label, value, isPink], idx) => (
             <div key={idx} className="flex items-center justify-between py-1">
               <span className="text-[14px] text-gray-500 font-medium">{label}</span>
-              <span className={`text-[14px] font-bold ${isPink ? 'text-primary' : 'text-navy'}`}>{value}</span>
+              <span className={`text-[14px] font-bold ${isPink ? 'text-primary' : 'text-navy'}`}>{value || '-'}</span>
             </div>
           ))}
         </div>
@@ -276,13 +279,19 @@ const ChiTietPYCXemPhong = () => {
                 <svg className="text-red-500" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
               )}
               <span className={`text-[16px] font-bold ${trangThaiPhong ? 'text-green-700' : 'text-red-700'}`}>
-                {trangThaiPhong ? 'Phòng còn trống' : 'Phòng đã có người'}
+                {trangThaiPhong
+                  ? (phieu.loaiHinhThue === 'Nguyên phòng' ? 'Phòng còn trống toàn bộ' : 'Giường còn trống')
+                  : (phieu.loaiHinhThue === 'Nguyên phòng' ? 'Phòng đã có người' : 'Giường đã có người')}
               </span>
             </div>
             <p className={`text-[13px] ml-9 ${trangThaiPhong ? 'text-green-600' : 'text-red-600'}`}>
-              {trangThaiPhong 
-                ? `Phòng ${phieu.phong?.maPhong || ''} vẫn còn trống và đủ điều kiện nhận cọc.`
-                : `Phòng ${phieu.phong?.maPhong || ''} hiện tại đã có người ở hoặc đang giữ chỗ, không thể xác nhận thuê.`
+              {trangThaiPhong
+                ? phieu.loaiHinhThue === 'Nguyên phòng'
+                  ? `Phòng ${phieu.phong?.maPhong || ''} còn trống toàn bộ, đủ điều kiện nhận cọc.`
+                  : `Giường ${dsMaGiuong} (phòng ${phieu.phong?.maPhong || ''}) còn trống, đủ điều kiện nhận cọc.`
+                : phieu.loaiHinhThue === 'Nguyên phòng'
+                  ? `Phòng ${phieu.phong?.maPhong || ''} hiện có giường đã bị sử dụng, không thể xác nhận thuê.`
+                  : `Giường ${dsMaGiuong} (phòng ${phieu.phong?.maPhong || ''}) hiện đã có người ở hoặc đang giữ chỗ.`
               }
             </p>
           </div>
