@@ -7,7 +7,7 @@ export const ROLES = {
 
 export const ROLE_HOME_PATHS = {
   [ROLES.SALE]: '/dang-ky-thue-phong',
-  [ROLES.ACCOUNTANT]: '/thanh-toan',
+  [ROLES.ACCOUNTANT]: '/thanh-toan-dau-ky',
   [ROLES.MANAGER]: '/danh-sach-hop-dong',
   [ROLES.TECHNICIAN]: '/',
 };
@@ -34,7 +34,6 @@ export const MENU_ITEMS_BY_ROLE = {
     { id: 'lich-tra-phong', label: 'Lịch trả phòng', icon: '📅', path: '/sale/contract-lookup', activePaths: ['/sale/contract-lookup', '/sale/return-schedule'] },
   ],
   [ROLES.ACCOUNTANT]: [
-    { id: 'thanh-toan', label: 'Thanh toán cọc', icon: '$', path: '/thanh-toan', activePaths: ['/thanh-toan', '/deposit'] },
     { id: 'thanh-toan-dau-ky', label: 'Thanh toán đầu kỳ', icon: '💳', path: '/thanh-toan-dau-ky' },
   ],
   [ROLES.MANAGER]: [
