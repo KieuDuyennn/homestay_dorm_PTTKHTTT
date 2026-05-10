@@ -31,15 +31,19 @@ class phongService {
       if (!result.success) return result;
 
       // Lọc nghiệp vụ:
-      // 1. Số giường trống == số lượng giường (trống hoàn toàn)
-      // 2. Số giường >= số người muốn thuê
-      // 3. Tính tổng tiền thuê = tiền thuê tháng * số lượng giường
+      // 1. Thuê nguyên căn: phòng phải là "Còn giường trống" (đã lọc ở DAO)
+      // 2. Toàn bộ giường trong phòng phải có trạng thái "Chưa sử dụng" hết
+      // 3. Số giường >= số người muốn thuê
       // 4. Kiểm tra thỏa mức giá (nếu có yêu cầu)
       const filtered = (result.data || [])
-        .filter(p => p.sogiuongtrong === p.soluonggiuong && (p.soluonggiuong || 0) >= soNguoiThue)
+        .filter(p => {
+          const dsGiuong = p.giuong || [];
+          const allChuaSuDung = dsGiuong.length > 0 && dsGiuong.every(g => g.tinhtrang === 'Chưa sử dụng');
+          return allChuaSuDung && dsGiuong.length >= soNguoiThue;
+        })
         .map(p => {
-          const tongTienThue = (p.tienthuethang || 0) * (p.soluonggiuong || 1);
-          const dsGiuong = (p.giuong || []).filter(g => g.tinhtrang === 'Chưa sử dụng');
+          const dsGiuong = p.giuong || [];
+          const tongTienThue = (p.tienthuethang || 0) * dsGiuong.length;
           const thoaGia = !mucGiaMax || mucGiaMax <= 0 || tongTienThue <= mucGiaMax;
           return thoaGia
             ? { ...p, giaMoiGiuong: p.tienthuethang, tongTienThue, dsGiuong, dsMagiuong: dsGiuong.map(g => g.magiuong) }
@@ -55,9 +59,8 @@ class phongService {
       if (!result.success) return result;
 
       // Lọc nghiệp vụ:
-      // 1. Phân bổ các giường trống thành nhóm số lượng = soNguoiThue
-      // 2. Tính tổng tiền thuê = tiền thuê mỗi giường * số người thuê
-      // 3. Kiểm tra thỏa mức giá (nếu có yêu cầu)
+      // 1. Ở ghép: Số giường có trạng thái "Chưa sử dụng" PHẢI BẰNG ĐÚNG VỚI số người.
+      // 2. Kiểm tra thỏa mức giá (nếu có yêu cầu)
       const ketQua = (result.data || [])
         .flatMap(phong => {
           const giuongTrong = (phong.giuong || [])
@@ -68,23 +71,20 @@ class phongService {
               return numA - numB;
             });
             
-          if (giuongTrong.length < soNguoiThue) return [];
+          // Điều kiện bắt buộc: số giường trống phải BẰNG ĐÚNG số người
+          if (giuongTrong.length !== soNguoiThue) return [];
 
           const tongTienThue = (phong.tienthuethang || 0) * soNguoiThue;
           const thoaGia = !mucGiaMax || mucGiaMax <= 0 || tongTienThue <= mucGiaMax;
           if (!thoaGia) return [];
 
-          // Lấy chính xác số lượng giường trống liên tiếp cần thiết
-          const group = giuongTrong.slice(0, soNguoiThue);
-          if (group.length < soNguoiThue) return [];
-
           return [{
             ...phong,
             giaMoiGiuong: phong.tienthuethang,
             tongTienThue,
-            dsGiuong: group,
-            dsMagiuong: group.map(g => g.magiuong),
-            magiuong: group[0]?.magiuong || null,
+            dsGiuong: giuongTrong,
+            dsMagiuong: giuongTrong.map(g => g.magiuong),
+            magiuong: giuongTrong[0]?.magiuong || null,
           }];
         });
 
