@@ -27,6 +27,15 @@ class chiTietPhieuYeuCauService {
       return { success: false, error };
     }
   }
+
+  static async luuNhieuChiTiet(items) {
+    try {
+      return await chiTietPhieuYeuCauDao.insertChiTietMany(items);
+    } catch (error) {
+      console.error('Lỗi chiTietPhieuYeuCauService.luuNhieuChiTiet:', error);
+      return { success: false, error };
+    }
+  }
 }
 
 module.exports = chiTietPhieuYeuCauService;

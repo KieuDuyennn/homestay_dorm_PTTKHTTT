@@ -1,6 +1,7 @@
 const khachHangService = require('./khachHang.service');
 const phieuYeuCauDao = require('../dao/phieuYeuCau.dao');
 const chiTietPhieuYeuCauDao = require('../dao/chiTietPhieuYeuCau.dao');
+const chiTietPhieuYeuCauService = require('./chiTietPhieuYeuCau.service');
 const phongDao = require('../dao/phong.dao');
 const giuongDao = require('../dao/giuong.dao');
 const thanhToanDao = require('../dao/thanhToan.dao');
@@ -124,16 +125,14 @@ class phieuYeuCauService {
               });
             } else {
               // Thuê nguyên căn: magiuong = null → fetch all beds in this room
-              const { data: allBeds, error: bedsError } = await supabase
-                .from('giuong')
-                .select('magiuong, maphong')
-                .eq('maphong', maphong);
+              const bedsResult = await giuongDao.selectByMaPhong(maphong);
 
-              if (bedsError) {
-                console.error(`Lỗi lấy danh sách giường cho phòng ${maphong}:`, bedsError);
+              if (!bedsResult.success) {
+                console.error(`Lỗi lấy danh sách giường cho phòng ${maphong}:`, bedsResult.error);
                 continue;
               }
 
+              const allBeds = bedsResult.data;
               if (Array.isArray(allBeds) && allBeds.length > 0) {
                 allBeds.forEach(bed => {
                   records.push({
@@ -150,9 +149,9 @@ class phieuYeuCauService {
           // Insert all records
           console.log(`Tổng records cần insert: ${records.length}`);
           console.log('Records:', records);
-            if (records.length > 0) {
-            const ctResult = await chiTietPhieuYeuCauDao.insertChiTietMany(records);
-            console.log('chiTietPhieuYeuCauDao.insertChiTietMany result:', ctResult);
+          if (records.length > 0) {
+            const ctResult = await chiTietPhieuYeuCauService.luuNhieuChiTiet(records);
+            console.log('chiTietPhieuYeuCauService.luuNhieuChiTiet result:', ctResult);
             if (!ctResult.success) {
               console.error('Không thể lưu chi tiết phiếu yêu cầu:', ctResult.error);
               return { success: true, message: 'Tạo phiếu yêu cầu thành công (chi tiết chưa lưu)', data: { MaYC: maycSaved, MaKH: maKH, ChiTietCount: 0 }, warning: ctResult.error };
@@ -199,8 +198,8 @@ class phieuYeuCauService {
 
   static async huyLich(mayc) {
     try {
-      // Xóa chi tiết phiếu trước (sử dụng DAO chuyên biệt)
-      const { success: delCTSuccess, error: delCTError } = await chiTietPhieuYeuCauDao.deleteChiTiet(mayc, null, null);
+      // Xóa chi tiết phiếu trước (sử dụng Service chuyên biệt)
+      const { success: delCTSuccess, error: delCTError } = await chiTietPhieuYeuCauService.deleteChiTiet(mayc, null, null);
       
       if (!delCTSuccess && delCTError) {
         console.error('Lỗi xóa chi tiết trong huyLich:', delCTError);
