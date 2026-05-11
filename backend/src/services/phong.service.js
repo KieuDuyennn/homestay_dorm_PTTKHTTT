@@ -17,13 +17,8 @@ class phongService {
     // Chuyển tên chi nhánh → mã chi nhánh
     let macn = null;
     if (chiNhanh) {
-      const cnMap = {
-        'Bình Thạnh': 'CN01', 'Chi nhánh Bình Thạnh': 'CN01',
-        'Thủ Đức': 'CN02', 'Chi nhánh Thủ Đức': 'CN02',
-        'Gò Vấp': 'CN03', 'Chi nhánh Gò Vấp': 'CN03',
-        'CN01': 'CN01', 'CN02': 'CN02', 'CN03': 'CN03',
-      };
-      macn = cnMap[chiNhanh] || null;
+      
+      macn = chiNhanh || null;
     }
 
     if (hinhThucThue === 'Thuê nguyên căn') {
